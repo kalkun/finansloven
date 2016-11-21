@@ -10,7 +10,7 @@ class Parser:
     def __init__(self):
         self.url = "http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi"
         self.resetPostData()
-        self.csvfile = "finanslov.csv"
+        self.csvfile = "finanslov.dsv"
         # top level 1 then 2, 3, 4, 5....
         self.currentLevel = 1
         self.history = {}
@@ -20,7 +20,20 @@ class Parser:
 
         self.text = requests.post(self.url, data=self.postData).text
         self.soup = BeautifulSoup(self.text, "lxml")
-        self.header = ["Paragraph", "Hovedområde", "Aktivitetsområde", "Hovedkonto", "Underkonto", "Standardkonto", "R 2015", "B 2016", "F 2017", "BO 1 2018", "BO 2 2019", "BO 3 2020"]
+        self.header = [
+                "Paragraph", 
+                "Hovedområde", 
+                "Aktivitetsområde", 
+                "Hovedkonto", 
+                "Underkonto", 
+                "Standardkonto", 
+                "R 2015", 
+                "B 2016", 
+                "F 2017", 
+                "BO 1 2018", 
+                "BO 2 2019", 
+                "BO 3 2020"
+            ]
         self.dumpCSV(data=[self.header])
         
         self.findDrillables()
@@ -104,8 +117,6 @@ class Parser:
             "funk" : "STANDARDRAP", 
             "dwidth" : "1920", 
             "subwindow" : "1",
-            "curniv" : "1",
-            "PGF" : "01",
             "struktur" : "PGF HOMRADE AOMRADE HKONTO UKONTO STDKTO"
         }
 
@@ -119,29 +130,29 @@ class Parser:
         self.text = requests.post(self.url, data=self.postData).text
 
     def parseIds(self, ids, curniv=None):
-        if len(ids) < 2:
-            raise ValueError("Ids are not a parsable length")
         if len(ids) == 2:
             self.postData['PGF'] = ids
             self.currentLevel = curniv or 1
             return
-        if len(ids) == 3:
+        elif len(ids) == 3:
             # hovedområde
             self.postData['HOMRADE'] = ids
             self.parseIds(ids[:2], curniv or 2)
-        if len(ids) == 4:
+        elif len(ids) == 4:
             # aktivområde
             self.postData['AOMRADE'] = ids
             self.parseIds(ids[:3], curniv or 3)
-        if len(ids) == 6:
+        elif len(ids) == 6:
             # hovedkonto
             self.postData['HKONTO'] = ids
             curniv = curniv or 4
             self.parseIds(ids[:4], curniv or 4)
-        if len(ids) == 8:
+        elif len(ids) == 8:
             # underkonto
             self.postData['UKONTO'] = ids
             self.parseIds(ids[:6], 5)
+        else:
+            raise ValueError("Ids are not a parsable length")
 
 
 

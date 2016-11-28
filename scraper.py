@@ -4,7 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import csv
-import sys
 
 class Parser:
     def __init__(self):

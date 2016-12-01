@@ -113,8 +113,28 @@ function onData(aktiver) {
         .range([0, radius]);
 
     function computeTextRotation(d) {
-        return (d.x + (d.dx)/2) * 180 / Math.PI - 90;
+        // if ((d.x + (d.dx)/2) * 180 / Math.PI - 90 > Math.PI /2) {
+        //     console.log(d);
+        //     console.log(((d.x + (d.dx)/2) * 180 / Math.PI - 90) - Math.PI/2);
+        // }
+
+        return (d.x + (d.dx)/2) * 180 / Math.PI - 90 < 90
+                ? (d.x + (d.dx)/2) * 180 / Math.PI - 90 
+                : ((d.x + (d.dx)/2) * 180 / Math.PI - 90) - 180;
     }
+
+
+    svg.select("g")
+      .selectAll("path")
+      .data(partition.nodes(root)
+          .filter(function(d) {
+            return d.depth == 1;
+          }))
+      .enter()
+      .append("path")
+      .attr("d", function(d) {
+        return "M " + d.x + ((d.dx + d.x) / 2)
+      })
 
     var text = d3.select("svg").select("g").selectAll("text")
         .data(partition.nodes(root)
@@ -123,13 +143,22 @@ function onData(aktiver) {
             }))
         .enter()
         .append("text")
-        .attr("transform", function(d) { console.log(d); return "rotate(" + computeTextRotation(d) + ")"; })
+        .attr("style", function(d) { 
+            if ((d.x + (d.dx)/2) * 180 / Math.PI - 90 > 90) {
+                return "transform:rotate(" + computeTextRotation(d) + "deg) translate(-600px,0px);"; 
+                // rotate(-39.3391deg) translate(-600px,0px)
+            } else {
+                return "transform:rotate(" + computeTextRotation(d) + "deg);"; 
+                
+            }
+        })
         .attr("x", function(d) {  return margin.right/ 1.8; })
         .attr("dx", "6") // margin
         .attr("dy", ".35em") // vertical-align
         .text(function(d) { return d.name; });
 
   function zoomIn(p) {
+    // console.log(p.depth);
     if (p.depth > 1) p = p.parent;
     if (!p.children) return;
     zoom(p, p);
@@ -161,6 +190,20 @@ function onData(aktiver) {
     }
 
     center.datum(root);
+    svg.select("g")
+      .datum([0,0])
+      .append("circle")
+      .attr("cy", function(d) {
+        console.log(d);
+        return d[0]
+      })
+      .attr("cx", function(d) {
+        return d[1]
+      })
+      .attr("r", function(d) {
+        return "10"
+      })
+    console.log("what is this ", center.datum(root));
 
     // When zooming in, arcs enter from the outside and exit to the inside.
     // Entering outside arcs start from the old layout.
@@ -172,7 +215,7 @@ function onData(aktiver) {
     // Exiting outside arcs transition to the new layout.
     if (root !== p) enterArc = insideArc, exitArc = outsideArc, outsideAngle.range([p.x, p.x + p.dx]);
 
-    d3.transition().duration(d3.event.altKey ? 7500 : 750).each(function() {
+    d3.transition().duration(750).each(function() {
       path.exit().transition()
           .style("fill-opacity", function(d) { return d.depth === 1 + (root === p) ? 1 : 0; })
           .attrTween("d", function(d) { return arcTween.call(this, exitArc(d)); })

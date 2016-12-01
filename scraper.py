@@ -1,26 +1,37 @@
 #!/usr/bin/env python3
+"""
+    Execute from the commandline:
 
+    `./scraper.py [output file]`
+
+    default output file is `finanslov.dsv`
+"""
+import sys
 import requests
 from bs4 import BeautifulSoup
 import time
 import csv
+import math
 
-class Parser:
-    def __init__(self):
+class Scraper:
+    def __init__(self, writeToFile="finanslov.dsv"):
         self.url = "http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi"
         self.resetPostData()
-        self.csvfile = "finanslov.dsv"
+        self.csvfile = writeToFile
         # top level 1 then 2, 3, 4, 5....
         self.currentLevel = 1
         self.history = {}
         self.Queue = []
         self.data = []
+        # appends self.data to file if more than 
+        # self.flushFreq rows in self.data
+        self.flushFreq = 50
 
 
         self.text = requests.post(self.url, data=self.postData).text
         self.soup = BeautifulSoup(self.text, "lxml")
         self.header = [
-                "Paragraph", 
+                "Paragraf", 
                 "Hovedområde", 
                 "Aktivitetsområde", 
                 "Hovedkonto", 
@@ -33,7 +44,7 @@ class Parser:
                 "BO 2 2019", 
                 "BO 3 2020"
             ]
-        self.dumpCSV(data=[self.header])
+        self.flushCSV(data=[self.header])
         
         self.findDrillables()
         while self.Queue:
@@ -48,14 +59,16 @@ class Parser:
                 BeautifulSoup(self.text, "html.parser")
             )
             time.sleep(.5)
-            if len(self.data) > 50: 
-                self.dumpCSV()
+            if len(self.data) > self.flushFreq: 
+                self.flushCSV()
                 self.data = []
+        # all done, if anything in self.data
+        # then flush it
         if len(self.data):
-            self.dumpCSV()
+            self.flushCSV()
             self.data = []
         
-    def dumpCSV(self, csvfile=None, data=None):
+    def flushCSV(self, csvfile=None, data=None):
         csvfile = csvfile or self.csvfile
         data = data or self.data
         with open(csvfile, "a+") as f:
@@ -99,17 +112,22 @@ class Parser:
                     aomrade,
                     hkonto,
                     ukonto,
-                    stdkonto,
-                    float(row[1].text.strip().replace(".", "").replace(",", ".")),
-                    float(row[2].text.strip().replace(".", "").replace(",", ".")),
-                    float(row[3].text.strip().replace(".", "").replace(",", ".")),
-                    float(row[4].text.strip().replace(".", "").replace(",", ".")),
-                    float(row[5].text.strip().replace(".", "").replace(",", ".")),
-                    float(row[6].text.strip().replace(".", "").replace(",", ".")),
+                    stdkonto] 
+                    + list(map(lambda x : x.text.strip().replace(",", "").replace(",", "."), row[1:7]))
+                )
 
-                ])
-                print("-" * 80)
-                print("-" * 5 + " " + str(self.data[-1]) + " " + "-" * 5)
+                self.printLatest(self.data[-1])
+
+    def printLatest(self, line):
+        print("-" * 80)
+        for i in range(len(line)):
+            print(
+                    self.header[i] + " " * (20 - len(self.header[i])) + line[i] 
+                if  
+                    line[i][0] != "-" 
+                else 
+                    self.header[i] + " " * (19 - len(self.header[i])) + line[i]
+            )
 
     def resetPostData(self):
         self.postData = { 
@@ -130,6 +148,7 @@ class Parser:
 
     def parseIds(self, ids, curniv=None):
         if len(ids) == 2:
+            # paragraf
             self.postData['PGF'] = ids
             self.currentLevel = curniv or 1
             return
@@ -156,4 +175,7 @@ class Parser:
 
 
 if __name__ == "__main__":
-    parser = Parser()
+    if len(sys.argv) > 1:
+        parser = Scraper(writeToFile=sys.argv[1])
+    else:
+        parser = Scraper()

@@ -9,7 +9,6 @@
 import sys
 import requests
 from bs4 import BeautifulSoup
-import time
 import csv
 import math
 
@@ -58,7 +57,6 @@ class Scraper:
             self.findDrillables(
                 BeautifulSoup(self.text, "html.parser")
             )
-            time.sleep(.5)
             if len(self.data) > self.flushFreq: 
                 self.flushCSV()
                 self.data = []
@@ -124,7 +122,7 @@ class Scraper:
             print(
                     self.header[i] + " " * (20 - len(self.header[i])) + line[i] 
                 if  
-                    line[i][0] != "-" 
+                    line[i] and line[i][0] != "-" 
                 else 
                     self.header[i] + " " * (19 - len(self.header[i])) + line[i]
             )

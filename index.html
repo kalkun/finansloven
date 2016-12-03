@@ -15,8 +15,21 @@
         fill : white;
         cursor : pointer;
     }
+    .centerpie text {
+      font-size:20px;
+      font-weight:500;
+      text-decoration:underline;
+      cursor:pointer;
+    }
+    #breadcrumbs h3 {
+      display:inline-block;
+      font-size:18px;
+      padding-right:5px;
+      cursor:pointer;
+    }
 </style>
 </body>
+<div id="breadcrumbs"></div>
 <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"></script> -->
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
@@ -29,7 +42,7 @@
 <script type="text/javascript">
     
 var margin = {top: 350, right: 480, bottom: 350, left: 480},
-    radius = Math.min(margin.top, margin.right, margin.bottom, margin.left) - 200;
+    radius = Math.min(margin.top, margin.right, margin.bottom, margin.left) - 100;
 
 var hue = d3.scale.category10();
 
@@ -41,8 +54,14 @@ var luminance = d3.scale.sqrt()
 var svg = d3.select("body").append("svg")
     .attr("width", margin.left + margin.right)
     .attr("height", margin.top + margin.bottom)
-  .append("g")
+  
+var piegroup = svg.append("g")
+    .attr("class", "pie")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var centergroup = svg.append("g")
+    .attr("class", "centerpie")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
 
 var partition = d3.layout.partition()
     .sort(function(a, b) { return d3.ascending(a.name, b.name); })
@@ -56,16 +75,7 @@ var arc = d3.svg.arc()
     .innerRadius(function(d) { return radius / 3 * d.depth; })
     .outerRadius(function(d) { return radius / 3 * (d.depth + 1) - 1; });
 
-//d3.json(google.script.run.getData(), function(error, root) {
-//  if (error) throw error;
-// function(){
-//   root = flare; 
-//root = google.script.run.getData();
-//console.log(root);
-//console.log(google.script.run.getData());
 function onData(aktiver) {
-//   console.log(aktiver);
-   // root = JSON.parse(aktiver);
    root = aktiver;
 
   // Compute the initial layout on the entire tree to sum sizes.
@@ -83,21 +93,25 @@ function onData(aktiver) {
 
   // Now redefine the value function to use the previously-computed sum.
   partition
-      .children(function(d, depth) { return depth < 4 ? d._children : null; })
+      .children(function(d, depth) { return depth < 3 ? d._children : null; })
       .value(function(d) { return d.sum; });
 
-  var center = svg.append("circle")
+  var center = piegroup.append("circle")
       .attr("r", radius / 3)
       .on("click", zoomOut);
 
   center.append("title")
       .text("zoom out");
 
-  var path = svg.selectAll("path")
+  var path = piegroup.selectAll("path")
       .data(partition.nodes(root).slice(1))
     .enter().append("path")
       .attr("d", arc)
-      .style("fill", function(d) { return d.fill; })
+      .style("fill", function(d) { 
+        // if (d.depth == 1) {
+        //   console.log(d);
+        // }
+        return d.fill; })
       .each(function(d) { this._current = updateArc(d); })
       .on("click", zoomIn)
       
@@ -112,19 +126,7 @@ function onData(aktiver) {
         .domain([0, margin.right])
         .range([0, radius]);
 
-    function computeTextRotation(d) {
-        // if ((d.x + (d.dx)/2) * 180 / Math.PI - 90 > Math.PI /2) {
-        //     console.log(d);
-        //     console.log(((d.x + (d.dx)/2) * 180 / Math.PI - 90) - Math.PI/2);
-        // }
-
-        return (d.x + (d.dx)/2) * 180 / Math.PI - 90 < 90
-                ? (d.x + (d.dx)/2) * 180 / Math.PI - 90 
-                : ((d.x + (d.dx)/2) * 180 / Math.PI - 90) - 180;
-    }
-
-
-    svg.select("g")
+    piegroup
       .selectAll("path")
       .data(partition.nodes(root)
           .filter(function(d) {
@@ -133,39 +135,85 @@ function onData(aktiver) {
       .enter()
       .append("path")
       .attr("d", function(d) {
-        return "M " + d.x + ((d.dx + d.x) / 2)
-      })
+        return "M " + d.x + ((d.dx + d.x) / 2);
+      });
 
-    var text = d3.select("svg").select("g").selectAll("text")
-        .data(partition.nodes(root)
-            .filter(function(d) {
-                return d.depth == 1;
-            }))
+
+    var sum = centergroup.append("text");
+        updateText(root);
+
+    var breadcrumbs =d3.select("#breadcrumbs")
+      .selectAll("h3");
+
+    updateBreadcrumbs(root);
+
+  function updateText(data) {
+    sum.data([data])
+    .text(function(d) {
+      if (d.sum /10 < 1) console.log(d.sum);
+      return d.sum /10 < 1 ? "< 10 millioner" : d.sum < 1000 ? (Math.round(d.sum/10) /1000) + " mia" : Math.round(d.sum/1000) + " mia";
+    })
+    .attr("transform", function(d) {
+      return "translate(-" + this.getBBox().width/2 + ", 0)";
+    })
+    .on("click", zoomOut)
+    .append("title")
+      .text(function(d) {return Math.round(d.sum) + " millioner"})
+
+  }
+
+  function getParents(p) {
+    ancestors = [p];
+    while(p.parent) {
+      p = p.parent;
+      ancestors.push(p)
+    }
+    return ancestors;
+  }
+
+  function updateBreadcrumbs(p) {
+    breadcrumbs = d3.select("#breadcrumbs").selectAll("h3")
+      .data(getParents(p).reverse(), function(d) {return d.name})
+      breadcrumbs.exit().remove();
+      var c = 1;
+      breadcrumbs.each(function(d,i ) {
+        c += 1
+        // console.log(i, breadcrumbs.data().length)
+        if ((!i && breadcrumbs.data().length == 1) ||  i+1 == breadcrumbs.data().length ) {
+          d3.select(this).select("span")
+            .text("")
+        } else {
+          d3.select(this).select("span")
+            .text(" > ");
+        }
+      })
+      breadcrumbs
         .enter()
-        .append("text")
-        .attr("style", function(d) { 
-            if ((d.x + (d.dx)/2) * 180 / Math.PI - 90 > 90) {
-                return "transform:rotate(" + computeTextRotation(d) + "deg) translate(-600px,0px);"; 
-                // rotate(-39.3391deg) translate(-600px,0px)
-            } else {
-                return "transform:rotate(" + computeTextRotation(d) + "deg);"; 
-                
-            }
+        .append("h3")
+        .text(function(d, i) {
+          return i == 0 ? d.name : d.name
         })
-        .attr("x", function(d) {  return margin.right/ 1.8; })
-        .attr("dx", "6") // margin
-        .attr("dy", ".35em") // vertical-align
-        .text(function(d) { return d.name; });
+        .on("click", function(d) {
+          console.log(root.name, d.name);
+          if (d.name == root.name && breadcrumbs.data().length > 1) {
+            zoom(root, breadcrumbs.data()[1]);
+            updateBreadcrumbs(root);
+          }
+          zoomOut(d);
+        })
+        .append("span")
+  }
 
   function zoomIn(p) {
-    // console.log(p.depth);
     if (p.depth > 1) p = p.parent;
     if (!p.children) return;
+    updateBreadcrumbs(p);
     zoom(p, p);
   }
 
   function zoomOut(p) {
-    if (!p.parent) return;
+    if (!p || !p.parent) return;
+    updateBreadcrumbs(p.parent.name == root.name ? root : p.parent);
     zoom(p.parent, p);
   }
 
@@ -173,6 +221,12 @@ function onData(aktiver) {
   function zoom(root, p) {
     if (document.documentElement.__transition__) return;
 
+    if (root.name !== p.name) {
+      updateText(root);
+    } else {
+      updateText(p);
+    }
+      
     // Rescale outside angles to match the new layout.
     var enterArc,
         exitArc,
@@ -190,20 +244,6 @@ function onData(aktiver) {
     }
 
     center.datum(root);
-    svg.select("g")
-      .datum([0,0])
-      .append("circle")
-      .attr("cy", function(d) {
-        console.log(d);
-        return d[0]
-      })
-      .attr("cx", function(d) {
-        return d[1]
-      })
-      .attr("r", function(d) {
-        return "10"
-      })
-    console.log("what is this ", center.datum(root));
 
     // When zooming in, arcs enter from the outside and exit to the inside.
     // Entering outside arcs start from the old layout.
@@ -239,6 +279,7 @@ function onData(aktiver) {
 
 function checkProperties(obj, properties, value) {
     var previous;
+    // console.log(properties)
     while (properties.length) {
         current = properties.pop();
         exists = false
@@ -283,7 +324,7 @@ d3.tsv("finanslov.tsv", function(err, data) {
     }
 
     for (var i = 0, len = data.length; i < len; i++) {
-        p = data[i]["Paragraph"];
+        p = data[i]["Paragraf"];
         ha = data[i]["Hovedområde"];
         a = data[i]["Aktivitetsområde"];
         hk = data[i]["Hovedkonto"];

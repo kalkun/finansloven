@@ -277,7 +277,7 @@ function onData(aktiver) {
             rows.append("td").text(function(d) {return d.title});
             rows.append("td").text(function(d) {return d.value});
 
-        d3.selectAll("path").transition().style("opacity", 0.2);
+        d3.selectAll("path").transition().style("opacity", 0.4);
         var descendants = getDescendants(d, true) 
         d3.selectAll("path").filter(function(node) {
             return descendants.indexOf(node.key) > -1;
@@ -290,7 +290,7 @@ function onData(aktiver) {
     }
     function mouseout(d) {
         clearMouseSelection();
-        d3.selectAll("path").style("opacity", 1);
+        d3.selectAll("path").transition().style("opacity", 1);
 
     }
 

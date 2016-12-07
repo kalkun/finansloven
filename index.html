@@ -570,11 +570,11 @@ function init(expenses) {
             "value": d.name,
             "order": 1
         }, {
-            "title": "Bevilget (mia)",
+            "title": (expenses ? "Bevilget (mia)" : "Indtægter (mia)"),
             "value": (Math.round(d.sum / 100) / 10 > 0 ? (Math.round(d.sum / 100) / 10) : Math.round(d.sum * 1000) / 1000000) + " milliarder",
             "order": 2
         }, {
-            "title": "Bevilget (mio)",
+            "title": (expenses ? "Bevilget (mio)" : "Indtægter (mio)"),
             "value": d.sum > 10 ? Math.round(d.sum) : d.sum + " millioner",
             "order": 3
         }, ]

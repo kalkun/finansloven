@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Finanslov 2016</title>
     <meta charset="utf-8" />
@@ -7,14 +8,20 @@
 
 <body>
     <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    (function(i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function() {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
-      ga('create', 'UA-88686123-1', 'auto');
-      ga('send', 'pageview');
-
+    ga('create', 'UA-88686123-1', 'auto');
+    ga('send', 'pageview');
     </script>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
@@ -38,8 +45,9 @@
     svg {
         margin: 0 auto;
         display: block;
-        float:right;
+        float: right;
     }
+    
     @media all and (min-width: 1000px) {
         svg {
             margin-right: 10%;
@@ -80,18 +88,33 @@
         font-size: 15px;
         cursor: pointer;
     }
-    .title,
-    #searchbar {
-        display: inline-block;
+    
+    .title-group {
+        display:inline-block;
         width: 50%;
+    }
+    .title-group button h3 {
+        margin:0;
+    }
+    .title,
+    #searchbar,
+    button {
+        display: inline-block;
+        vertical-align:baseline;
+    }
+    .title-group button {
+        vertical-align:sub;
     }
     
     #searchbar {
         width: 40%;
+        vertical-align:-moz-middle-with-baseline;
     }
+    
     #infobox {
-        position:absolute;
+        position: absolute;
     }
+    
     .curView table th,
     .curView table td {
         width: 50%;
@@ -100,7 +123,9 @@
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-body">
-                <h3 class="title">Finansloven 2016 - Udgifter</h3>
+                <div class="title-group">
+                    <h3 class="title">Finansloven 2016 - </h3> <button class="btn btn-default"><h3>Udgifter</h3></button>
+                </div>
                 <div id="searchbar" class="form-group">
                     <input type="text" value="" class="form-control" placeholder="Søg i paragraffer">
                 </div>
@@ -129,572 +154,608 @@
 </script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script type="text/javascript">
-var margin = {
-        top: 280,
-        right: 400,
-        bottom: 280,
-        left: 400
-    },
-    radius = Math.min(margin.top, margin.right, margin.bottom, margin.left) - 100;
+function init(expenses) {
 
-var hue = d3.scale.category10();
+    var margin = {
+            top: 280,
+            right: 400,
+            bottom: 280,
+            left: 400
+        },
+        radius = Math.min(margin.top, margin.right, margin.bottom, margin.left) - 100;
 
-var luminance = d3.scale.sqrt()
-    .domain([0, 1e6])
-    .clamp(true)
-    .range([90, 20]);
+    var hue = d3.scale.category10();
 
-var svg = d3.select("body").select("svg#pie")
-    .attr("width", margin.left + margin.right - 150)
-    .attr("height", margin.top + margin.bottom)
+    var luminance = d3.scale.sqrt()
+        .domain([0, 1e6])
+        .clamp(true)
+        .range([90, 20]);
 
-var zoomscale = d3.scale.linear().range([0.5,1.5]).domain([-100, 100])
+    var svg = d3.select("body").select("svg#pie")
+        .attr("width", margin.left + margin.right - 150)
+        .attr("height", margin.top + margin.bottom)
 
-var piegroup = svg.append("g")
-    .attr("class", "pie")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var zoomscale = d3.scale.linear().range([0.5, 1.5]).domain([-100, 100])
 
-var centergroup = svg.append("g")
-    .attr("class", "centerpie")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var piegroup = svg.append("g")
+        .attr("class", "pie")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var partition = d3.layout.partition()
-    .sort(function(a, b) {
-        return d3.ascending(a.name, b.name);
-    })
-    .size([2 * Math.PI, radius]);
+    var centergroup = svg.append("g")
+        .attr("class", "centerpie")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var arc = d3.svg.arc()
-    .startAngle(function(d) {
-        return d.x;
-    })
-    .endAngle(function(d) {
-        return d.x + d.dx;
-    })
-    .padAngle(.01)
-    .padRadius(radius / 3)
-    .innerRadius(function(d) {
-        return radius / 3 * d.depth;
-    })
-    .outerRadius(function(d) {
-        return radius / 3 * (d.depth + 1) - 1;
-    });
-
-function onData(aktiver) {
-    root = aktiver;
-    // Compute the initial layout on the entire tree to sum sizes.
-    // Also compute the full name and fill color for each node,
-    // and stash the children so they can be restored as we descend.
-    partition
-        .value(function(d) {
-            return d.size;
+    var partition = d3.layout.partition()
+        .sort(function(a, b) {
+            return d3.ascending(a.name, b.name);
         })
-        .nodes(root)
-        .forEach(function(d) {
-            d._children = d.children;
-            d.sum = d.value;
-            d.key = key(d);
-            d.fill = fill(d);
+        .size([2 * Math.PI, radius]);
+
+    var arc = d3.svg.arc()
+        .startAngle(function(d) {
+            return d.x;
+        })
+        .endAngle(function(d) {
+            return d.x + d.dx;
+        })
+        .padAngle(.01)
+        .padRadius(radius / 3)
+        .innerRadius(function(d) {
+            return radius / 3 * d.depth;
+        })
+        .outerRadius(function(d) {
+            return radius / 3 * (d.depth + 1) - 1;
         });
 
-    // Now redefine the value function to use the previously-computed sum.
-    partition
-        .children(function(d, depth) {
-            if (currentFocus.key == root.key) return depth < 1 ? d._children : null;
-            return depth < 3 ? d._children : null;
-        })
-        .value(function(d) {
-            return d.sum;
-        });
+    function onData(aktiver) {
+        root = aktiver;
+        // Compute the initial layout on the entire tree to sum sizes.
+        // Also compute the full name and fill color for each node,
+        // and stash the children so they can be restored as we descend.
+        partition
+            .value(function(d) {
+                return d.size;
+            })
+            .nodes(root)
+            .forEach(function(d) {
+                d._children = d.children;
+                d.sum = d.value;
+                d.key = key(d);
+                d.fill = fill(d);
+            });
 
-    setFooterFocus(root);
+        // Now redefine the value function to use the previously-computed sum.
+        partition
+            .children(function(d, depth) {
+                if (currentFocus.key == root.key) return depth < 1 ? d._children : null;
+                return depth < 3 ? d._children : null;
+            })
+            .value(function(d) {
+                return d.sum;
+            });
 
-    var center = piegroup.append("circle")
-        .attr("r", radius / 3)
-        .on("click", zoomOut);
+        setFooterFocus(root);
 
-    center.append("title")
-        .text("zoom out");
+        var center = piegroup.append("circle")
+            .attr("r", radius / 3)
+            .on("click", zoomOut);
 
-    var x = d3.scale.linear()
-        .range([0, 2 * Math.PI]);
+        center.append("title")
+            .text("zoom out");
 
-    var y = d3.scale.linear()
-        .domain([0, margin.right])
-        .range([0, radius]);
+        var x = d3.scale.linear()
+            .range([0, 2 * Math.PI]);
 
-    var path = piegroup.selectAll("path")
-        .data(partition.nodes(root).slice(1), function(d) {return d.key})
-        .enter().append("path")
-        .attr("d", arc)
-        .style("fill", function(d) {
-            return d.fill;
-        })
-        .each(function(d) {
-            this._current = updateArc(d);
-        })
-        .on("click", zoomIn)
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout);
+        var y = d3.scale.linear()
+            .domain([0, margin.right])
+            .range([0, radius]);
 
-    mouseover(root);
+        var path = piegroup.selectAll("path")
+            .data(partition.nodes(root).slice(1), function(d) {
+                return d.key
+            })
+            .enter().append("path")
+            .attr("d", arc)
+            .style("fill", function(d) {
+                return d.fill;
+            })
+            .each(function(d) {
+                this._current = updateArc(d);
+            })
+            .on("click", zoomIn)
+            .on("mouseover", mouseover)
+            .on("mouseout", mouseout);
 
-
-    piegroup
-        .selectAll("path")
-        .data(partition.nodes(root)
-            .filter(function(d) {
-                return d.depth == 1;
-            }), function(d) {return d.key})
-        .enter()
-        .append("path")
-        .attr("d", function(d) {
-            return "M " + d.x + ((d.dx + d.x) / 2);
-        });
+        mouseover(root);
 
 
-    var sum = centergroup.append("text");
-    updateText(root);
+        piegroup
+            .selectAll("path")
+            .data(partition.nodes(root)
+                .filter(function(d) {
+                    return d.depth == 1;
+                }),
+                function(d) {
+                    return d.key
+                })
+            .enter()
+            .append("path")
+            .attr("d", function(d) {
+                return "M " + d.x + ((d.dx + d.x) / 2);
+            });
 
-    var breadcrumbs = d3.select("#breadcrumbs")
-        .selectAll("h3");
 
-    updateBreadcrumbs(root);
+        var sum = centergroup.append("text");
+        updateText(root);
 
-    function mouseover(d) {
-        if (document.documentElement.__transition__) return;
-        clearMouseSelection();
-        data = getMeta(d);
-        tselect = d3.select("#infobox table")
-        var thead = tselect.select("thead").selectAll("tr").data(data.slice(0,1), function(d) {if(!d) return; return d.value + d.order;});
-        var rows = thead.enter().append("tr");
-            rows.append("th").text(function(d) {return d.value});
+        var breadcrumbs = d3.select("#breadcrumbs")
+            .selectAll("h3");
+
+        updateBreadcrumbs(root);
+
+        function mouseover(d) {
+            if (document.documentElement.__transition__) return;
+            clearMouseSelection();
+            data = getMeta(d);
+            tselect = d3.select("#infobox table")
+            var thead = tselect.select("thead").selectAll("tr").data(data.slice(0, 1), function(d) {
+                if (!d) return;
+                return d.value + d.order;
+            });
+            var rows = thead.enter().append("tr");
+            rows.append("th").text(function(d) {
+                return d.value
+            });
             rows.append("th");
-        var tbody = tselect.select("tbody").selectAll("tr").data(data.slice(1), function(d) {if (!d) return; return d.value + d.order;});
+            var tbody = tselect.select("tbody").selectAll("tr").data(data.slice(1), function(d) {
+                if (!d) return;
+                return d.value + d.order;
+            });
             rows = tbody.enter().append("tr")
-            rows.append("td").text(function(d) {return d.title});
-            rows.append("td").text(function(d) {return d.value});
+            rows.append("td").text(function(d) {
+                return d.title
+            });
+            rows.append("td").text(function(d) {
+                return d.value
+            });
 
-        d3.selectAll("path").transition().style("opacity", 0.4);
-        var descendants = getDescendants(d, true) 
-        d3.selectAll("path").filter(function(node) {
-            return descendants.indexOf(node.key) > -1;
-        }).transition().style("opacity", 1);
-    }
-    function clearMouseSelection() {
-        var tselect = d3.select("#infobox table");
-        tselect.select("thead").selectAll("tr").data([]).exit().remove();
-        tselect.select("tbody").selectAll("tr").data([]).exit().remove();
-    }
-    function mouseout(d) {
-        if (document.documentElement.__transition__) return;
-        clearMouseSelection();
-        d3.selectAll("path").transition().style("opacity", 1);
-        mouseover(currentFocus);
+            d3.selectAll("path").transition().style("opacity", 0.4);
+            var descendants = getDescendants(d, true)
+            d3.selectAll("path").filter(function(node) {
+                return descendants.indexOf(node.key) > -1;
+            }).transition().style("opacity", 1);
+        }
 
-    }
+        function clearMouseSelection() {
+            var tselect = d3.select("#infobox table");
+            tselect.select("thead").selectAll("tr").data([]).exit().remove();
+            tselect.select("tbody").selectAll("tr").data([]).exit().remove();
+        }
 
-    function getDescendants(node, onlyNames) {
-        var hist = {}
-        var descendants = [node.key]
-        function _find(d) {
-            if (d._children) {
-                for (var i = 0; i < d._children.length; i++) {
-                    if (!hist.hasOwnProperty(d._children[i].key)) {
-                        hist[d._children[i].key] = "visited";
-                        if (onlyNames) {
-                            descendants.push(d._children[i].key);
-                        } else {
-                            descendants.push(d._children[i]);
+        function mouseout(d) {
+            if (document.documentElement.__transition__) return;
+            clearMouseSelection();
+            d3.selectAll("path").transition().style("opacity", 1);
+            mouseover(currentFocus);
+
+        }
+
+        function getDescendants(node, onlyNames) {
+            var hist = {}
+            var descendants = [node.key]
+
+            function _find(d) {
+                if (d._children) {
+                    for (var i = 0; i < d._children.length; i++) {
+                        if (!hist.hasOwnProperty(d._children[i].key)) {
+                            hist[d._children[i].key] = "visited";
+                            if (onlyNames) {
+                                descendants.push(d._children[i].key);
+                            } else {
+                                descendants.push(d._children[i]);
+                            }
+                            _find(d._children[i], onlyNames);
                         }
-                        _find(d._children[i], onlyNames);
                     }
                 }
             }
-        }
-        _find(node);
-        return descendants;
-    }
-
-    function updateText(data) {
-        sum.data([data])
-            .text(function(d) {
-                return d.sum / 10 < 1 ? "< 10 millioner" : d.sum < 1000 ? (Math.round(d.sum / 10) / 1000) + " mia" : Math.round(d.sum / 1000) + " mia";
-            })
-            .attr("transform", function(d) {
-                return "translate(-" + this.getBBox().width / 2 + ", 0)";
-            })
-            .on("click", zoomOut)
-            .append("title")
-            .text(function(d) {
-                return Math.round(d.sum) + " millioner"
-            })
-
-    }
-
-    function getParents(p) {
-        ancestors = [p];
-        while (p.parent) {
-            p = p.parent;
-            ancestors.push(p)
-        }
-        return ancestors;
-    }
-
-    function updateBreadcrumbs(p) {
-        breadcrumbs = d3.select("#breadcrumbs")
-            .selectAll("div")
-            .data(getParents(p).reverse(), function(d) {
-                return d.name
-            })
-
-        var exiting = breadcrumbs.exit();
-        exiting.remove();
-        var entering = breadcrumbs
-            .enter()
-            .append("div")
-            .style("display", "inline-block")
-            .classed("label label-default", true)
-        entering
-            .append("h3")
-            .text(function(d, i) {
-                return i == 0 ? d.name : d.name
-            })
-            .on("click", function(d) {
-                if (currentFocus.key == d.key) return;
-                node = currentFocus;
-                while(node.parent.key != d.key) {
-                    node = node.parent
-                }
-                zoomOut(node);
-
-            });
-    }
-
-    function zoomIn(p) {
-        if (!p.children) p.children = p._children;
-        if (!p._children) p = p.parent;
-        updateBreadcrumbs(p);
-        zoom(p, p);
-    }
-
-    function zoomOut(p) {
-        if (!p || !p.parent) return;
-        updateBreadcrumbs(p.parent.name == root.name ? root : p.parent);
-        zoom(p.parent, p);
-    }
-
-    // Zoom to the specified new root.
-    function zoom(root, p) {
-        if (document.documentElement.__transition__) return;
-
-        if (root.name !== p.name) {
-            updateText(root);
-            setFooterFocus(root);
-        } else {
-            updateText(p);
-            setFooterFocus(p);
+            _find(node);
+            return descendants;
         }
 
-        // Rescale outside angles to match the new layout.
-        var enterArc,
-            exitArc,
-            outsideAngle = d3.scale.linear().domain([0, 2 * Math.PI]);
+        function updateText(data) {
+            sum.data([data])
+                .text(function(d) {
+                    return d.sum / 10 < 1 ? "< 10 millioner" : d.sum < 1000 ? (Math.round(d.sum / 10) / 1000) + " mia" : Math.round(d.sum / 1000) + " mia";
+                })
+                .attr("transform", function(d) {
+                    return "translate(-" + this.getBBox().width / 2 + ", 0)";
+                })
+                .on("click", zoomOut)
+                .append("title")
+                .text(function(d) {
+                    return Math.round(d.sum) + " millioner"
+                })
 
-        function insideArc(d) {
-            return p.key > d.key ? {
-                depth: d.depth - 1,
-                x: 0,
-                dx: 0
-            } : p.key < d.key ? {
-                depth: d.depth - 1,
-                x: 2 * Math.PI,
-                dx: 0
-            } : {
-                depth: 0,
-                x: 0,
-                dx: 2 * Math.PI
-            };
         }
 
-        function outsideArc(d) {
-            return {
-                depth: d.depth + 1,
-                x: outsideAngle(d.x),
-                dx: outsideAngle(d.x + d.dx) - outsideAngle(d.x)
-            };
+        function getParents(p) {
+            ancestors = [p];
+            while (p.parent) {
+                p = p.parent;
+                ancestors.push(p)
+            }
+            return ancestors;
         }
 
-        center.datum(root);
-
-        // When zooming in, arcs enter from the outside and exit to the inside.
-        // Entering outside arcs start from the old layout.
-        if (root === p) enterArc = outsideArc, exitArc = insideArc, outsideAngle.range([p.x, p.x + p.dx]);
-
-        path = path.data(partition.nodes(root).slice(1), function(d) {
-            return d.key;
-        });
-
-        // When zooming out, arcs enter from the inside and exit to the outside.
-        // Exiting outside arcs transition to the new layout.
-        if (root !== p) enterArc = insideArc, exitArc = outsideArc, outsideAngle.range([p.x, p.x + p.dx]);
-
-        d3.transition().duration(750).each(function() {
-            path.exit().transition()
-                .style("fill-opacity", function(d) {
-                    return d.depth === 1 + (root === p) ? 1 : 0;
-                })
-                .attrTween("d", function(d) {
-                    return arcTween.call(this, exitArc(d));
-                })
-                .remove();
-
-            path.enter().append("path")
-                .style("fill-opacity", function(d) {
-                    return d.depth === 2 - (root === p) ? 1 : 0;
-                })
-                .style("fill", function(d) {
-                    return d.fill;
-                })
-                .on("click", zoomIn)
-                .on("mouseover", mouseover)
-                .on("mouseout", mouseout)
-                .each(function(d) {
-                    this._current = enterArc(d);
+        function updateBreadcrumbs(p) {
+            breadcrumbs = d3.select("#breadcrumbs")
+                .selectAll("div")
+                .data(getParents(p).reverse(), function(d) {
+                    return d.name
                 })
 
-            path.transition()
-                .style("fill-opacity", 1)
-                .attrTween("d", function(d) {
-                    return arcTween.call(this, updateArc(d));
+            var exiting = breadcrumbs.exit();
+            exiting.remove();
+            var entering = breadcrumbs
+                .enter()
+                .append("div")
+                .style("display", "inline-block")
+                .classed("label label-default", true)
+            entering
+                .append("h3")
+                .text(function(d, i) {
+                    return i == 0 ? d.name : d.name
+                })
+                .on("click", function(d) {
+                    if (currentFocus.key == d.key) return;
+                    node = currentFocus;
+                    while (node.parent.key != d.key) {
+                        node = node.parent
+                    }
+                    zoomOut(node);
+
                 });
-        });
-    }
-    $("#searchbar .form-control").autocomplete({
-        source: function(req, res) {
-            term = new RegExp($.ui.autocomplete.escapeRegex(req.term), "i");
-            hist = {}
-            results = []
+        }
 
-            var find = function(node) {
-                var index = node.name.toLowerCase().search(term);
-                if (index > -1 && node.name != root.name) {
-                    results.splice(index, 0, {
-                        "label": node.name,
-                        "node": node
+        function zoomIn(p) {
+            if (!p.children) p.children = p._children;
+            if (!p._children) p = p.parent;
+            updateBreadcrumbs(p);
+            zoom(p, p);
+        }
+
+        function zoomOut(p) {
+            if (!p || !p.parent) return;
+            updateBreadcrumbs(p.parent.name == root.name ? root : p.parent);
+            zoom(p.parent, p);
+        }
+
+        // Zoom to the specified new root.
+        function zoom(root, p) {
+            if (document.documentElement.__transition__) return;
+
+            if (root.name !== p.name) {
+                updateText(root);
+                setFooterFocus(root);
+            } else {
+                updateText(p);
+                setFooterFocus(p);
+            }
+
+            // Rescale outside angles to match the new layout.
+            var enterArc,
+                exitArc,
+                outsideAngle = d3.scale.linear().domain([0, 2 * Math.PI]);
+
+            function insideArc(d) {
+                return p.key > d.key ? {
+                    depth: d.depth - 1,
+                    x: 0,
+                    dx: 0
+                } : p.key < d.key ? {
+                    depth: d.depth - 1,
+                    x: 2 * Math.PI,
+                    dx: 0
+                } : {
+                    depth: 0,
+                    x: 0,
+                    dx: 2 * Math.PI
+                };
+            }
+
+            function outsideArc(d) {
+                return {
+                    depth: d.depth + 1,
+                    x: outsideAngle(d.x),
+                    dx: outsideAngle(d.x + d.dx) - outsideAngle(d.x)
+                };
+            }
+
+            center.datum(root);
+
+            // When zooming in, arcs enter from the outside and exit to the inside.
+            // Entering outside arcs start from the old layout.
+            if (root === p) enterArc = outsideArc, exitArc = insideArc, outsideAngle.range([p.x, p.x + p.dx]);
+
+            path = path.data(partition.nodes(root).slice(1), function(d) {
+                return d.key;
+            });
+
+            // When zooming out, arcs enter from the inside and exit to the outside.
+            // Exiting outside arcs transition to the new layout.
+            if (root !== p) enterArc = insideArc, exitArc = outsideArc, outsideAngle.range([p.x, p.x + p.dx]);
+
+            d3.transition().duration(750).each(function() {
+                path.exit().transition()
+                    .style("fill-opacity", function(d) {
+                        return d.depth === 1 + (root === p) ? 1 : 0;
                     })
-                } else {
-                    if (node._children) {
-                        for (var i = 0; i < node._children.length; i++) {
-                            if (!hist.hasOwnProperty(node._children[i].name)) {
-                                hist[node._children[i].name] = "visited"
-                                find(node._children[i])
+                    .attrTween("d", function(d) {
+                        return arcTween.call(this, exitArc(d));
+                    })
+                    .remove();
+
+                path.enter().append("path")
+                    .style("fill-opacity", function(d) {
+                        return d.depth === 2 - (root === p) ? 1 : 0;
+                    })
+                    .style("fill", function(d) {
+                        return d.fill;
+                    })
+                    .on("click", zoomIn)
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout)
+                    .each(function(d) {
+                        this._current = enterArc(d);
+                    })
+
+                path.transition()
+                    .style("fill-opacity", 1)
+                    .attrTween("d", function(d) {
+                        return arcTween.call(this, updateArc(d));
+                    });
+            });
+        }
+        $("#searchbar .form-control").autocomplete({
+            source: function(req, res) {
+                term = new RegExp($.ui.autocomplete.escapeRegex(req.term), "i");
+                hist = {}
+                results = []
+
+                var find = function(node) {
+                    var index = node.name.toLowerCase().search(term);
+                    if (index > -1 && node.name != root.name) {
+                        results.splice(index, 0, {
+                            "label": node.name,
+                            "node": node
+                        })
+                    } else {
+                        if (node._children) {
+                            for (var i = 0; i < node._children.length; i++) {
+                                if (!hist.hasOwnProperty(node._children[i].name)) {
+                                    hist[node._children[i].name] = "visited"
+                                    find(node._children[i])
+                                }
                             }
                         }
                     }
                 }
-            }
-            find(root);
-            res(results.slice(0, 10));
-        },
-        select: function(event, ui) {
-            var node = ui.item.node; 
-            if (node.name == currentFocus.name) return;
-            setFooterFocus(node);
-            mouseover(node)
-            if (node.depth == 0) {
-                zoomOut(node);
-            } else {
-                zoomIn(node);
-            }
-            $("#searchbar .form-control").data().uiAutocomplete.term = ""
-        }
-    })
-}
-
-var currentFocus;
-
-function getMeta(d) {
-    data = [{
-        "title": "",
-        "value": d.name,
-        "order": 1
-    }, {
-        "title": "Bevilget (mia)",
-        "value": (Math.round(d.sum / 100) / 10 > 0 ? (Math.round(d.sum / 100) / 10) : Math.round(d.sum * 1000) / 1000000) + " milliarder",
-        "order": 2
-    }, {
-        "title": "Bevilget (mio)",
-        "value": d.sum > 10 ? Math.round(d.sum) : d.sum + " millioner",
-        "order": 3
-    }, ]
-    if (d.parent) {
-        data.push({
-            "title": "% af " + d.parent.name,
-            "value": (Math.round(d.sum / d.parent.sum * 10000) / 100) + "%",
-            "order": 4
-        })
-    }
-    if (d.parent && currentFocus && d.parent.name != currentFocus.name && d.name != currentFocus.name) {
-        data.push({
-            "title": "% af " + currentFocus.name,
-            "value": (Math.round(d.sum / currentFocus.sum * 10000) / 100) + "%",
-            "order": 5
-        })
-    }
-    if (currentFocus && root.name != currentFocus.name && root.name != d.parent.name) {
-        data.push({
-            "title": "% af " + root.name,
-            "value": (Math.round(d.sum / root.sum * 100000) / 1000 > 0 ? (Math.round(d.sum / root.sum * 100000) / 1000) : "< 0.0005") + "%",
-            "order": 6
-        })
-    }
-    return data;
-
-}
-$(window).on("load", function() {
-    $("#searchbar .form-control").focus();
-})
-
-function setFooterFocus(focus) {
-    currentFocus = focus;
-    if (document.documentElement.__transition__) return;
-    if (currentFocus.key == root.key) {
-        var ts = d3.transform(piegroup.attr("transform")).translate
-        piegroup.transition().duration(750).attr("transform", function() {
-            return  "translate(" + ts[0] + "," + ts[1] + ") " +
-                    "scale(2,2)"; 
-        });
-    } else {
-        piegroup.transition().duration(750).attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    }
-}
-
-
-function computeTooltip(d) {
-    var str = ""
-    getMeta(d).forEach(function(item, index) {
-        str += (index != 0 ? "\n" : "") + item.title + "   " + item.value;
-    })
-    return str;
-}
-
-function checkProperties(obj, properties, value) {
-    var previous;
-    while (properties.length) {
-        current = properties.pop();
-        exists = false
-        if (current == previous) {
-            continue;
-        }
-        for (var i = 0, len = obj.children.length; i < len; i++) {
-            if (obj.children[i] && obj.children[i].name == current) {
-                if (obj.children[i].hasOwnProperty("children")) {
-                    obj = obj.children[i];
-                    exists = true;
+                find(root);
+                res(results.slice(0, 10));
+            },
+            select: function(event, ui) {
+                var node = ui.item.node;
+                if (node.name == currentFocus.name) return;
+                setFooterFocus(node);
+                mouseover(node)
+                if (node.depth == 0) {
+                    zoomOut(node);
                 } else {
-                    return nested;
+                    zoomIn(node);
                 }
+                $("#searchbar .form-control").data().uiAutocomplete.term = ""
+                window.setTimeout(function() {
+                    $("#searchbar input").val("");
+                }, 40);
             }
-        }
-        if (!exists) {
-            if (!properties.length) {
-                newobj = {
-                    name: current,
-                    size: value
-                }
-            } else {
-                newobj = {
-                    name: current,
-                    children: []
-                }
-            }
-            obj.children.push(newobj);
-            obj = newobj;
-        }
-        previous = current;
-    }
-    return nested;
-}
-
-var finansloven;
-
-function fetchData(income) {
-    d3.tsv("finanslov.tsv", function(err, data) {
-        finansloven = data;
-        nested = {
-            "name": "Finansloven",
-            "children": []
-        }
-
-        for (var i = 0, len = data.length; i < len; i++) {
-            p = data[i]["Paragraf"];
-            ha = data[i]["Hovedområde"];
-            a = data[i]["Aktivitetsområde"];
-            hk = data[i]["Hovedkonto"];
-            u = data[i]["Underkonto"];
-            s = data[i]["Standardkonto"];
-            v = +data[i]["B 2016"];
-            if (income) {
-                if (v < 0) {
-                    nested = checkProperties(nested, [s, u, hk, a, ha, p], v);
-                }
-            } else {
-                if (v > 0) {
-                    nested = checkProperties(nested, [s, u, hk, a, ha, p], v);
-                }
-            }
-        }
-        onData(nested);
-    })
-}
-
-var showingIncome = false;
-
-(function() {
-    fetchData();
-    d3.select("#incomevsoutcome")
-        .on("click", function() {
-            showingIncome = !showingIncome;
-            piegroup.selectAll("circle").remove();
-            piegroup.selectAll("path").remove();
-            fetchData(showingIncome);
         })
-})()
+    }
+
+    var currentFocus;
+
+    function getMeta(d) {
+        data = [{
+            "title": "",
+            "value": d.name,
+            "order": 1
+        }, {
+            "title": "Bevilget (mia)",
+            "value": (Math.round(d.sum / 100) / 10 > 0 ? (Math.round(d.sum / 100) / 10) : Math.round(d.sum * 1000) / 1000000) + " milliarder",
+            "order": 2
+        }, {
+            "title": "Bevilget (mio)",
+            "value": d.sum > 10 ? Math.round(d.sum) : d.sum + " millioner",
+            "order": 3
+        }, ]
+        if (d.parent) {
+            data.push({
+                "title": "% af " + d.parent.name,
+                "value": (Math.round(d.sum / d.parent.sum * 10000) / 100) + "%",
+                "order": 4
+            })
+        }
+        if (d.parent && currentFocus && d.parent.name != currentFocus.name && d.name != currentFocus.name) {
+            data.push({
+                "title": "% af " + currentFocus.name,
+                "value": (Math.round(d.sum / currentFocus.sum * 10000) / 100) + "%",
+                "order": 5
+            })
+        }
+        if (currentFocus && root.name != currentFocus.name && root.name != d.parent.name) {
+            data.push({
+                "title": "% af " + root.name,
+                "value": (Math.round(d.sum / root.sum * 100000) / 1000 > 0 ? (Math.round(d.sum / root.sum * 100000) / 1000) : "< 0.0005") + "%",
+                "order": 6
+            })
+        }
+        return data;
+
+    }
+    $(window).on("load", function() {
+        $("#searchbar .form-control").focus();
+    })
+
+    function setFooterFocus(focus) {
+        currentFocus = focus;
+        if (document.documentElement.__transition__) return;
+        if (currentFocus.key == root.key) {
+            var ts = d3.transform(piegroup.attr("transform")).translate
+            piegroup.transition().duration(750).attr("transform", function() {
+                return "translate(" + ts[0] + "," + ts[1] + ") " +
+                    "scale(2,2)";
+            });
+        } else {
+            piegroup.transition().duration(750).attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        }
+    }
 
 
-function key(d) {
-    var k = [],
-        p = d;
-    while (p.depth) k.push(p.name), p = p.parent;
-    return k.reverse().join(".");
+    function computeTooltip(d) {
+        var str = ""
+        getMeta(d).forEach(function(item, index) {
+            str += (index != 0 ? "\n" : "") + item.title + "   " + item.value;
+        })
+        return str;
+    }
+
+    function checkProperties(obj, properties, value) {
+        var previous;
+        while (properties.length) {
+            current = properties.pop();
+            exists = false
+            if (current == previous) {
+                continue;
+            }
+            for (var i = 0, len = obj.children.length; i < len; i++) {
+                if (obj.children[i] && obj.children[i].name == current) {
+                    if (obj.children[i].hasOwnProperty("children")) {
+                        obj = obj.children[i];
+                        exists = true;
+                    } else {
+                        return nested;
+                    }
+                }
+            }
+            if (!exists) {
+                if (!properties.length) {
+                    newobj = {
+                        name: current,
+                        size: value
+                    }
+                } else {
+                    newobj = {
+                        name: current,
+                        children: []
+                    }
+                }
+                obj.children.push(newobj);
+                obj = newobj;
+            }
+            previous = current;
+        }
+        return nested;
+    }
+
+    var finansloven;
+
+    // if mode is `true` expenses will be fetched
+    // otherwise incomes
+    function fetchData(mode) {
+        d3.tsv("finanslov.tsv", function(err, data) {
+            finansloven = data;
+            nested = {
+                "name": "Finansloven",
+                "children": []
+            }
+
+            for (var i = 0, len = data.length; i < len; i++) {
+                p = data[i]["Paragraf"];
+                ha = data[i]["Hovedområde"];
+                a = data[i]["Aktivitetsområde"];
+                hk = data[i]["Hovedkonto"];
+                u = data[i]["Underkonto"];
+                s = data[i]["Standardkonto"];
+                v = +data[i]["B 2016"];
+                if (mode) {
+                    if (v > 0) {
+                        nested = checkProperties(nested, [s, u, hk, a, ha, p], v);
+                    }
+                } else {
+                    if (v < 0) {
+                        nested = checkProperties(nested, [s, u, hk, a, ha, p], Math.abs(v));
+                    }
+                }
+            }
+            onData(nested);
+        })
+    }
+
+    var showingIncome = false;
+
+    (function() {
+        fetchData(expenses);
+        d3.select("#incomevsoutcome")
+            .on("click", function() {
+                showingIncome = !showingIncome;
+                piegroup.selectAll("circle").remove();
+                piegroup.selectAll("path").remove();
+                fetchData(showingIncome);
+            })
+    })()
+
+
+    function key(d) {
+        var k = [],
+            p = d;
+        while (p.depth) k.push(p.name), p = p.parent;
+        return k.reverse().join(".");
+    }
+
+    function fill(d) {
+        var p = d;
+        while (p.depth > 1) p = p.parent;
+        var c = d3.lab(hue(p.name));
+        c.l = luminance(d.sum);
+        return c;
+    }
+
+    function arcTween(b) {
+        var i = d3.interpolate(this._current, b);
+        this._current = i(0);
+        return function(t) {
+            return arc(i(t));
+        };
+    }
+
+    function updateArc(d) {
+        return {
+            depth: d.depth,
+            x: d.x,
+            dx: d.dx
+        };
+    }
+
+    d3.select(self.frameElement).style("height", margin.top + margin.bottom + "px");
 }
-
-function fill(d) {
-    var p = d;
-    while (p.depth > 1) p = p.parent;
-    var c = d3.lab(hue(p.name));
-    c.l = luminance(d.sum);
-    return c;
-}
-
-function arcTween(b) {
-    var i = d3.interpolate(this._current, b);
-    this._current = i(0);
-    return function(t) {
-        return arc(i(t));
-    };
-}
-
-function updateArc(d) {
-    return {
-        depth: d.depth,
-        x: d.x,
-        dx: d.dx
-    };
-}
-
-d3.select(self.frameElement).style("height", margin.top + margin.bottom + "px");
+expenses = true;
+init(expenses);
+$(".title-group button").on("click", function() {
+    expenses = !expenses;
+    $("svg g, #infobox tr, #breadcrumbs div").remove();
+    init(expenses)
+    $(this).html("<h3>" + (expenses ? "Udgifter" : "Indtægter") + "</h3>")
+})
 </script>
 
 </html>

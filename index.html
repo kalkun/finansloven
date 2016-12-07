@@ -30,6 +30,7 @@
         margin: 0 auto;
         display: block;
         float:right;
+        margin-right:10%;
     }
     
     circle,
@@ -52,10 +53,7 @@
     }
     
     #breadcrumbs div {
-        /*font-size: 18px;*/
         cursor: pointer;
-        /*padding: 5px 10px 0 10px;*/
-        /*height:30px;*/
         margin: 3px;
         font-weight: 700;
     }
@@ -69,12 +67,6 @@
         font-size: 15px;
         cursor: pointer;
     }
-    
-    .panel-heading,
-    .panel-footer {
-        /*background-color: #f9f9f9;*/
-    }
-    
     .title,
     #searchbar {
         display: inline-block;
@@ -114,18 +106,7 @@
                 </div>
                 <svg id="pie"></svg>
             </div>
-            <div class="panel-footer curView">
-                <table class="table">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
         </div>
-<!--         <div class="panel panel-default">
-            <div class="panel-body">
-
-            </div>
-        </div> -->
     </div>
 </body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -133,7 +114,6 @@
 <script src="https://d3js.org/d3-collection.v1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous">
 </script>
-<!-- <script src = "https://code.jquery.com/jquery-1.10.2.js"></script> -->
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script type="text/javascript">
 var margin = {
@@ -154,6 +134,8 @@ var luminance = d3.scale.sqrt()
 var svg = d3.select("body").select("svg#pie")
     .attr("width", margin.left + margin.right - 150)
     .attr("height", margin.top + margin.bottom)
+
+var zoomscale = d3.scale.linear().range([0.5,1.5]).domain([-100, 100])
 
 var piegroup = svg.append("g")
     .attr("class", "pie")
@@ -205,6 +187,7 @@ function onData(aktiver) {
     // Now redefine the value function to use the previously-computed sum.
     partition
         .children(function(d, depth) {
+            if (currentFocus.key == root.key) return depth < 1 ? d._children : null;
             return depth < 3 ? d._children : null;
         })
         .value(function(d) {
@@ -240,6 +223,8 @@ function onData(aktiver) {
         .on("click", zoomIn)
         .on("mouseover", mouseover)
         .on("mouseout", mouseout);
+
+    mouseover(root);
 
 
     piegroup
@@ -289,8 +274,10 @@ function onData(aktiver) {
         tselect.select("tbody").selectAll("tr").data([]).exit().remove();
     }
     function mouseout(d) {
+        if (document.documentElement.__transition__) return;
         clearMouseSelection();
         d3.selectAll("path").transition().style("opacity", 1);
+        mouseover(currentFocus);
 
     }
 
@@ -500,6 +487,8 @@ function onData(aktiver) {
         select: function(event, ui) {
             var node = ui.item.node; 
             if (node.name == currentFocus.name) return;
+            setFooterFocus(node);
+            mouseover(node)
             if (node.depth == 0) {
                 zoomOut(node);
             } else {
@@ -556,34 +545,16 @@ $(window).on("load", function() {
 
 function setFooterFocus(focus) {
     currentFocus = focus;
-    headSelect = d3.select("body .curView table thead");
-    bodySelect = d3.select("body .curView table tbody");
-    headSelect.selectAll("tr").data([]).exit().remove();
-    bodySelect.selectAll("tr").data([]).exit().remove();
-
-    data = getMeta(focus)
-    var headenter = headSelect.selectAll("tr").data(data.slice(0, 1), function(d) {
-            return d.order + d.value;
-        })
-        .enter()
-        .append("tr");
-    headenter.append("th").text("Nuværende niveau:")
-    headenter.append("th").text(function(d) {
-            return d.value
+    if (document.documentElement.__transition__) return;
+    if (currentFocus.key == root.key) {
+        var ts = d3.transform(piegroup.attr("transform")).translate
+        piegroup.transition().duration(750).attr("transform", function() {
+            return  "translate(" + ts[0] + "," + ts[1] + ") " +
+                    "scale(2,2)"; 
         });
-
-
-    var currentView = bodySelect.selectAll("tr").data(data.slice(1), function(d) {
-        return d.order + d.value;
-    });
-    var entering = currentView.enter();
-    var rows = entering.append("tr")
-    rows.append("td").text(function(d) {
-        return d.title ? d.title : d.value
-    });
-    rows.append("td").text(function(d) {
-        return d.title ? d.value : ""
-    });
+    } else {
+        piegroup.transition().duration(750).attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    }
 }
 
 
@@ -661,7 +632,6 @@ function fetchData(income) {
                 }
             }
         }
-        // console.log("NESTED ", nested);
         onData(nested);
     })
 }

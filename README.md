@@ -10,4 +10,4 @@ Hvor nærmere beskrivelse af dataen også er at hente. Yderlige information samt
 
 Den første række i `finanslov.dsv` datasættet er en navne række for de forskellige kolonner. For en uddybet forklaring af kolonnerne se den oprindelige database på Finansministeriets hjemmeside. 
 
-Alle tal er i millioner og den mindst angivne enhed er 1 million som i overensstemmelse med det oprindelige datasæt. Tilgengæld er kommaer og læsevenlige punktummer skiftet ud med engelsk komma for nemmere beregning.
+Alle tal er i millioner i overensstemmelse med det oprindelige datasæt. Tilgengæld er kommaer og læsevenlige punktummer skiftet ud med engelsk komma for nemmere beregning.

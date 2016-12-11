@@ -11,24 +11,56 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import math
+import argparse
 
 class Scraper:
-    def __init__(self, writeToFile="finanslov.dsv"):
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            description = "Scraper for Finansministeriets finanslovsdatabase"
+        )
+        parser.add_argument(
+            "-o",
+            "--output",
+            metavar = "FILE",
+            help = "The output file to write the scraped information to (default: finanslov.dsv)",
+            default ="finanslov.dsv"
+        )
+        parser.add_argument(
+            "-y",
+            "--year",
+            metavar = "YYYY",
+            help = "The financial year to request from the database (default: 2017)",
+            default = "2017",
+        )
+        parser.add_argument(
+            "-i",
+            "--interval",
+            help = "The interval frequency that the scraped rows will be written to file (default: 50)",
+            type = int,
+            default = 50
+        )
+        parser.add_argument(
+            "-d",
+            "--delimiter",
+            help = "The delimiter to use for the output dsv (default: ';')",
+            type = lambda x : x.encode().decode("unicode_escape"),
+            default = ";"
+        )
+        self.args = parser.parse_args()
+
         self.url = "http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi"
         self.resetPostData()
-        self.csvfile = writeToFile
+        self.csvfile = self.args.output
         # top level 1 then 2, 3, 4, 5....
         self.currentLevel = 1
         self.history = {}
         self.Queue = []
         self.data = []
-        # appends self.data to file if more than 
-        # self.flushFreq rows in self.data
-        self.flushFreq = 50
-
 
         self.text = requests.post(self.url, data=self.postData).text
         self.soup = BeautifulSoup(self.text, "lxml")
+        hdr = self.soup.find_all("tr", class_="tabhdr")[1].find_all("th")
+        [ x.find("br").replaceWith(" ") for x in hdr ]
         self.header = [
                 "Paragraf", 
                 "Hovedområde", 
@@ -36,13 +68,8 @@ class Scraper:
                 "Hovedkonto", 
                 "Underkonto", 
                 "Standardkonto", 
-                "R 2015", 
-                "B 2016", 
-                "F 2017", 
-                "BO 1 2018", 
-                "BO 2 2019", 
-                "BO 3 2020"
-            ]
+            ] + [ x.text.strip() for x in hdr ]
+
         self.flushCSV(data=[self.header])
         
         self.findDrillables()
@@ -57,7 +84,7 @@ class Scraper:
             self.findDrillables(
                 BeautifulSoup(self.text, "html.parser")
             )
-            if len(self.data) > self.flushFreq: 
+            if len(self.data) > self.args.interval:
                 self.flushCSV()
                 self.data = []
         # all done, if anything in self.data
@@ -65,12 +92,12 @@ class Scraper:
         if len(self.data):
             self.flushCSV()
             self.data = []
-        
+
     def flushCSV(self, csvfile=None, data=None):
         csvfile = csvfile or self.csvfile
         data = data or self.data
         with open(csvfile, "a+") as f:
-            writer = csv.writer(f, delimiter=";")
+            writer = csv.writer(f, delimiter=self.args.delimiter)
             for row in data:
                 writer.writerow(row)
 
@@ -91,7 +118,7 @@ class Scraper:
                     ])
 
             except TypeError:
-                # at the bottom or at a leaf:
+                # at the bottom / at a leaf:
                 properlyClosed = BeautifulSoup(str(row), "lxml")
                 row = properlyClosed.find(class_="tabcelle").find_all("td")
                 pgf = self.history[self.postData["PGF"]]
@@ -111,7 +138,7 @@ class Scraper:
                     hkonto,
                     ukonto,
                     stdkonto] 
-                    + list(map(lambda x : x.text.strip().replace(",", "").replace(",", "."), row[1:7]))
+                    + [ x.text.strip().replace(".", "").replace(",", ".") for x in row[1:7] ]
                 )
 
                 self.printLatest(self.data[-1])
@@ -131,6 +158,9 @@ class Scraper:
         self.postData = { 
             "funk" : "STANDARDRAP", 
             "dwidth" : "1920", 
+            "qFINAR" : self.args.year,
+            "kFINAR" : self.args.year,
+            "rapniv" : 1,
             "subwindow" : "1",
             "struktur" : "PGF HOMRADE AOMRADE HKONTO UKONTO STDKTO"
         }
@@ -173,7 +203,4 @@ class Scraper:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        parser = Scraper(writeToFile=sys.argv[1])
-    else:
-        parser = Scraper()
+    Scraper()

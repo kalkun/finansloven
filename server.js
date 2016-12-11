@@ -15,6 +15,6 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 } else {
-    http.createServer(app).listen(10001);
+    http.createServer(app).listen(10000);
     console.log("Worker %s is listening on port 10000", process.pid);
 }

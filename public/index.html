@@ -672,7 +672,7 @@ function init(expenses) {
     // if mode is `true` expenses will be fetched
     // otherwise incomes
     function fetchData(mode) {
-        d3.tsv("finanslov.tsv", function(err, data) {
+        d3.tsv("data/finanslov_y2017.tsv", function(err, data) {
             finansloven = data;
             nested = {
                 "name": "Finansloven",

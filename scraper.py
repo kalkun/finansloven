@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 import csv
 import math
 import argparse
+import time
 
 class Scraper:
     def __init__(self):
@@ -84,6 +85,7 @@ class Scraper:
             self.findDrillables(
                 BeautifulSoup(self.text, "html.parser")
             )
+            time.sleep(0.5)
             if len(self.data) > self.args.interval:
                 self.flushCSV()
                 self.data = []

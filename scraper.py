@@ -2,7 +2,7 @@
 """
     Execute from the commandline:
 
-    `./scraper.py [output file]`
+    `./scraper.py -h`
 
     default output file is `finanslov.dsv`
 """

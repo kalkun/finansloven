@@ -552,8 +552,7 @@ function init(expenses) {
         d3.select("#incomevsoutcome")
             .on("click", function() {
                 showingIncome = !showingIncome;
-                piegroup.selectAll("circle").remove();
-                piegroup.selectAll("path").remove();
+                piegroup.selectAll("circle, path").remove();
                 fetchData(showingIncome);
             })
     })()

@@ -63,16 +63,17 @@ class Scraper:
         hdr = self.soup.find_all("tr", class_="tabhdr")[1].find_all("th")
         [ x.find("br").replaceWith(" ") for x in hdr ]
         self.header = [
-                "Paragraf", 
-                "Hovedområde", 
-                "Aktivitetsområde", 
-                "Hovedkonto", 
-                "Underkonto", 
-                "Standardkonto", 
+                "ID",
+                "Paragraf",
+                "Hovedområde",
+                "Aktivitetsområde",
+                "Hovedkonto",
+                "Underkonto",
+                "Standardkonto"
             ] + [ x.text.strip() for x in hdr ]
 
         self.flushCSV(data=[self.header])
-        
+
         self.findDrillables()
         while self.Queue:
             topic = self.Queue.pop()
@@ -85,7 +86,6 @@ class Scraper:
             self.findDrillables(
                 BeautifulSoup(self.text, "html.parser")
             )
-            time.sleep(0.5)
             if len(self.data) > self.args.interval:
                 self.flushCSV()
                 self.data = []
@@ -114,8 +114,8 @@ class Scraper:
                 name = " ".join(val.split("'")[1].split(" ")[9:])
                 if not ID in self.history:
                     self.Queue.append([
-                        href, 
-                        ID, 
+                        href,
+                        ID,
                         name
                     ])
 
@@ -130,17 +130,18 @@ class Scraper:
                 ukonto = self.history[self.postData["UKONTO"]]
                 stdkonto = " ".join(row[0].text.strip().split(" ")[1:])
                 """
-                    can change this from hard code appending to 
+                    can change this from hard code appending to
                     list to on user command build a csv, json or other...
-                """ 
+                """
                 self.data.append([
+                    self.postData["UKONTO"] + row[0].text.strip().split(" ")[0], # the ID string reconstructed
                     pgf,
                     homrade,
                     aomrade,
                     hkonto,
                     ukonto,
-                    stdkonto] 
-                    + [ x.text.strip().replace(".", "").replace(",", ".") for x in row[1:7] ]
+                    stdkonto
+                    ] + [ x.text.strip().replace(".", "").replace(",", ".") for x in row[1:7] ]
                 )
 
                 self.printLatest(self.data[-1])
@@ -149,17 +150,17 @@ class Scraper:
         print("-" * 80)
         for i in range(len(line)):
             print(
-                    self.header[i] + " " * (20 - len(self.header[i])) + line[i] 
-                if  
-                    line[i] and line[i][0] != "-" 
-                else 
+                    self.header[i] + " " * (20 - len(self.header[i])) + line[i]
+                if
+                    line[i] and line[i][0] != "-"
+                else
                     self.header[i] + " " * (19 - len(self.header[i])) + line[i]
             )
 
     def resetPostData(self):
-        self.postData = { 
-            "funk" : "STANDARDRAP", 
-            "dwidth" : "1920", 
+        self.postData = {
+            "funk" : "STANDARDRAP",
+            "dwidth" : "1920",
             "qFINAR" : self.args.year,
             "kFINAR" : self.args.year,
             "rapniv" : 1,
@@ -174,7 +175,16 @@ class Scraper:
         self.postData['up' + curvar] = selectedVal
         self.postData['funk'] = "DRILLDOWN"
         self.postData['curniv'] = self.currentLevel
-        self.text = requests.post(self.url, data=self.postData).text
+        wait = 1
+        while True:
+            try:
+                self.text = requests.post(self.url, data=self.postData).text
+            except requests.exceptions.ConnectionError:
+                print("Connection error, sleep for %s seconds" % wait)
+                time.sleep(wait)
+                wait *= 2
+                continue
+            break
 
     def parseIds(self, ids, curniv=None):
         if len(ids) == 2:

@@ -86,6 +86,7 @@ class Scraper:
             self.findDrillables(
                 BeautifulSoup(self.text, "html.parser")
             )
+            time.sleep(0.5)
             if len(self.data) > self.args.interval:
                 self.flushCSV()
                 self.data = []

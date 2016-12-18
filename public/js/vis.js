@@ -291,6 +291,7 @@ function init(expenses) {
         // Zoom to the specified new root.
         function zoom(root, p) {
             if (document.documentElement.__transition__) return;
+            tip.hide();
 
             if (root.name !== p.name) {
                 updateText(root);

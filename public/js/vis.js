@@ -15,9 +15,15 @@ function init(expenses) {
         .clamp(true)
         .range([90, 20]);
 
+    var tip = d3.tip().attr("class", "d3-tip").html(function(d) {
+        return getMeta(d)[0].value;
+    })
+    .direction('e');
+
     var svg = d3.select("body").select("svg#pie")
         .attr("width", margin.left + margin.right - 150)
         .attr("height", margin.top + margin.bottom)
+        .call(tip);
 
     var zoomscale = d3.scale.linear().range([0.5, 1.5]).domain([-100, 100])
 
@@ -50,6 +56,7 @@ function init(expenses) {
         .outerRadius(function(d) {
             return radius / 3 * (d.depth + 1) - 1;
         });
+
 
     function onData(aktiver) {
         root = aktiver;
@@ -108,7 +115,7 @@ function init(expenses) {
             })
             .on("click", zoomIn)
             .on("mouseover", mouseover)
-            .on("mouseout", mouseout);
+            .on("mouseout", mouseout)
 
         mouseover(root);
 
@@ -168,6 +175,12 @@ function init(expenses) {
             d3.selectAll("path").filter(function(node) {
                 return descendants.indexOf(node.key) > -1;
             }).transition().style("opacity", 1);
+
+            // mouseover is also called initially to set the table with
+            // meta info about root node, in this case the d3.event is empty.
+            if (d3.event) {
+                tip.show(d);
+            }
         }
 
         function clearMouseSelection() {
@@ -181,7 +194,7 @@ function init(expenses) {
             clearMouseSelection();
             d3.selectAll("path").transition().style("opacity", 1);
             mouseover(currentFocus);
-
+            tip.hide(d);
         }
 
         function getDescendants(node, onlyNames) {

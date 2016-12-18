@@ -2,8 +2,9 @@
 <html>
 
 <head>
-    <title>Finanslov 2016</title>
+    <title>Finanslov 2017</title>
     <meta charset="utf-8" />
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
 </head>
 
 <body>
@@ -24,7 +25,9 @@
     ga('send', 'pageview');
     </script>
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <div class="container">
         <div class="panel panel-default">
@@ -52,6 +55,8 @@
                 </div>
                 <svg id="pie"></svg>
             </div>
+            <div class="panel-footer readme">
+            </div>
         </div>
     </div>
 </body>
@@ -60,6 +65,17 @@
 <script src="https://d3js.org/d3-collection.v1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous">
 </script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.js"></script>
+<!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
 <script type="text/javascript" src="js/vis.js"></script>
+<script type="text/javascript">
+    $.get("https://raw.githubusercontent.com/kalkun/finansloven/master/README.md", function(readme) {
+        $(".panel-footer.readme").html(function() {
+            return marked(readme.replace(/Visualiseringen kan ses \[her\]\(http\:\/\/52\.59\.14\.148\:10000\/\)/, "Projektet i form af kode og data er tilgængeligt fra [github](https://github.com/kalkun/finansloven)."));
+        })
+    })
+</script>
 </html>

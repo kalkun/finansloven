@@ -20,4 +20,4 @@ Alle tal i datasættene er i millioner i overensstemmelse med det oprindelige da
 
 Visualiseringen er lavet i [D3.js](https://d3js.org/) ud fra Mike Bostocks sunburst eksempler. Visualiseringen viser enten budgetterede udgifter eller indtægter på finansloven. Budgetterede indtægter er på finansloven angivet i negative tal - og filtreringen er foretaget ud fra dette kritiere. 
 
-Tallene som indgår i visualiseringen er udelukkende fra kolonne `F 2016` som ifølge finanslovsdatabasen angiver finansårets bevilling for 2017.
+Tallene som indgår i visualiseringen er udelukkende fra kolonne `F 2017` som ifølge finanslovsdatabasen angiver finansårets bevilling for 2017.

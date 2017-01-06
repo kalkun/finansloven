@@ -1,93 +1,109 @@
 body {
-        padding-top: 20px;
-    }
-    
-    body .panel {
-        display: inline-block;
-        vertical-align: top;
-        max-width: 1000px;
-        min-width: 100%;
-    }
-    
-    .panel .panel-heading {
-        min-height: 75px;
-        padding: 0;
-    }
-    
+    padding-top: 20px;
+}
+
+body .panel {
+    display: inline-block;
+    vertical-align: top;
+    max-width: 1000px;
+    min-width: 100%;
+}
+
+.panel .panel-heading {
+    min-height: 75px;
+    padding: 0;
+}
+
+svg {
+    margin: 0 auto;
+    display: block;
+    float: right;
+}
+
+@media all and (min-width: 1000px) {
     svg {
-        margin: 0 auto;
-        display: block;
-        float: right;
+        margin-right: 10%;
     }
-    
-    @media all and (min-width: 1000px) {
-        svg {
-            margin-right: 10%;
-        }
-    }
-    
-    circle,
-    path {
-        fill: white;
-        cursor: pointer;
-    }
-    
-    .centerpie text {
-        font-size: 18px;
-        font-weight: 500;
-        text-decoration: underline;
-        cursor: pointer;
-    }
-    
-    #breadcrumbs {
-        text-align: center;
-        display: flex;
-        flex-wrap: wrap;
-    }
-    
-    #breadcrumbs div {
-        cursor: pointer;
-        margin: 3px;
-        font-weight: 700;
-    }
-    
-    #breadcrumbs div h3 {
-        margin: 0;
-        line-height: 20px;
-    }
-    
-    text.badge {
-        font-size: 15px;
-        cursor: pointer;
-    }
-    
-    .title-group {
-        display:inline-block;
-        width: 50%;
-    }
-    .title-group button h3 {
-        margin:0;
-    }
-    .title,
-    #searchbar,
-    button {
-        display: inline-block;
-        vertical-align:baseline;
-    }
-    .title-group button {
-        vertical-align:sub;
-    }
-    
-    #searchbar {
-        width: 40%;
-        vertical-align:-moz-middle-with-baseline;
-    }
-    
-    #infobox {
-        position: absolute;
-    }
-    
-    .curView table th,
-    .curView table td {
-        width: 50%;
-    }
+}
+
+circle,
+path {
+    fill: white;
+    cursor: pointer;
+}
+
+.centerpie text {
+    font-size: 18px;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#breadcrumbs {
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#breadcrumbs div {
+    cursor: pointer;
+    margin: 3px;
+    font-weight: 700;
+}
+
+#breadcrumbs div h3 {
+    margin: 0;
+    line-height: 20px;
+}
+
+text.badge {
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.title-group {
+    display:inline-block;
+    width: 50%;
+}
+.title-group button h3 {
+    margin:0;
+}
+.title,
+#searchbar,
+button {
+    display: inline-block;
+    vertical-align:baseline;
+}
+.title-group button {
+    vertical-align:sub;
+}
+
+#searchbar {
+    width: 40%;
+    vertical-align:-moz-middle-with-baseline;
+}
+
+#infobox {
+    position: absolute;
+}
+
+.curView table th,
+.curView table td {
+    width: 50%;
+}
+
+.dropdown {
+    display:inline-block;
+    vertical-align:baseline;
+}
+.dropdown .caret {
+    vertical-align:super;
+}
+
+.title-group h3 {
+    display:inline-block;
+}
+
+.dropdown-menu li a {
+    cursor: pointer;
+}

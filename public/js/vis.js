@@ -1,4 +1,4 @@
-function init(expenses) {
+function init(expenses, year) {
 
     var margin = {
             top: 280,
@@ -85,7 +85,7 @@ function init(expenses) {
                 return d.sum;
             });
 
-        setFooterFocus(root);
+        setFocus(root);
 
         var center = piegroup.append("circle")
             .attr("r", radius / 3)
@@ -146,8 +146,24 @@ function init(expenses) {
 
         function mouseover(d) {
             if (document.documentElement.__transition__) return;
+            
+            setTable(getMeta(d));           
+
+            d3.selectAll("path").transition().style("opacity", 0.4);
+            var descendants = getDescendants(d, true)
+            d3.selectAll("path").filter(function(node) {
+                return descendants.indexOf(node.key) > -1;
+            }).transition().style("opacity", 1);
+
+            // mouseover is also called initially to set the table with
+            // meta info about root node, in this case the d3.event is empty.
+            if (d3.event) {
+                tip.show(d);
+            }
+        }
+
+        function setTable(data) {
             clearMouseSelection();
-            data = getMeta(d);
             tselect = d3.select("#infobox table")
             var thead = tselect.select("thead").selectAll("tr").data(data.slice(0, 1), function(d) {
                 if (!d) return;
@@ -169,18 +185,6 @@ function init(expenses) {
             rows.append("td").text(function(d) {
                 return d.value
             });
-
-            d3.selectAll("path").transition().style("opacity", 0.4);
-            var descendants = getDescendants(d, true)
-            d3.selectAll("path").filter(function(node) {
-                return descendants.indexOf(node.key) > -1;
-            }).transition().style("opacity", 1);
-
-            // mouseover is also called initially to set the table with
-            // meta info about root node, in this case the d3.event is empty.
-            if (d3.event) {
-                tip.show(d);
-            }
         }
 
         function clearMouseSelection() {
@@ -295,10 +299,12 @@ function init(expenses) {
 
             if (root.name !== p.name) {
                 updateText(root);
-                setFooterFocus(root);
+                setFocus(root);
+                setTable(getMeta(root));
             } else {
                 updateText(p);
-                setFooterFocus(p);
+                setFocus(p);
+                setTable(getMeta(p));
             }
 
             // Rescale outside angles to match the new layout.
@@ -405,7 +411,7 @@ function init(expenses) {
             select: function(event, ui) {
                 var node = ui.item.node;
                 if (node.name == currentFocus.name) return;
-                setFooterFocus(node);
+                setFocus(node);
                 mouseover(node)
                 if (node.depth == 0) {
                     zoomOut(node);
@@ -464,7 +470,7 @@ function init(expenses) {
         $("#searchbar .form-control").focus();
     })
 
-    function setFooterFocus(focus) {
+    function setFocus(focus) {
         currentFocus = focus;
         if (document.documentElement.__transition__) return;
         if (currentFocus.key == root.key) {
@@ -529,8 +535,11 @@ function init(expenses) {
 
     // if mode is `true` expenses will be fetched
     // otherwise incomes
-    function fetchData(mode) {
-        d3.tsv("data/finanslov_y2017.tsv", function(err, data) {
+    function fetchData(mode, year) {
+        if (!year) {
+            year = "2017";
+        }
+        d3.tsv("data/finanslov_y" + year + ".tsv", function(err, data) {
             finansloven = data;
             nested = {
                 "name": "Finansloven",
@@ -544,7 +553,7 @@ function init(expenses) {
                 hk = data[i]["Hovedkonto"];
                 u = data[i]["Underkonto"];
                 s = data[i]["Standardkonto"];
-                v = +data[i]["B 2016"];
+                v = +data[i]["B " + (year-1)];
                 if (mode) {
                     if (v > 0) {
                         nested = checkProperties(nested, [s, u, hk, a, ha, p], v);
@@ -562,7 +571,7 @@ function init(expenses) {
     var showingIncome = false;
 
     (function() {
-        fetchData(expenses);
+        fetchData(expenses, year);
         d3.select("#incomevsoutcome")
             .on("click", function() {
                 showingIncome = !showingIncome;
@@ -607,9 +616,45 @@ function init(expenses) {
 }
 expenses = true;
 init(expenses);
-$(".title-group button").on("click", function() {
+$(".title-group button.toggle").on("click", function() {
     expenses = !expenses;
-    $("svg g, #infobox tr, #breadcrumbs div").remove();
-    init(expenses)
     $(this).html("<h3>" + (expenses ? "Udgifter" : "Indtægter") + "</h3>")
-})
+    reset(expenses);
+});
+function reset(expenses, year) {
+    $("svg g, #infobox tr, #breadcrumbs div").remove();
+    init(expenses, year)
+}
+
+$('.dropdown-toggle').click(function(){
+  var _this = this;
+  var count = 0;    
+  var handler = function(e) {
+    if (count > 0) {
+
+        if ($(".dropdown-menu").find(e.target).length) {
+            // selection made
+            // console.log("clicked inside", $(e.target).text(), $(e.target).text() !== $(_this).children("h3").text());
+            $(".dropdown-menu li.active").removeClass("active");
+            $(e.target).parent().addClass("active");
+            if ($(e.target).text() !== $(_this).children("h3").text()) {
+                $(_this).children("h3").text( $(e.target).text());
+                reset(expenses, $(e.target).text());
+            }
+
+        }
+
+        $(_this).next(".dropdown-menu").toggle();
+        $(document).off("click", handler);
+
+    } else {
+        $(_this).next(".dropdown-menu").toggle();
+    }
+    count += 1;
+  }
+
+  if ($(_this).next(".dropdown-menu").css("display") == "none") {
+    $(document).on("click", handler);
+  }
+
+});

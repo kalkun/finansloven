@@ -5,7 +5,7 @@ var cluster = require('cluster'),
     app     = express();
 
 app.use(function(req, res, next) {
-    console.log("request", req.Url);
+    if (req.url == "/") console.log("request", req.headers['user-agent']);
     next();
 });
 app.use(express.static("public/"));

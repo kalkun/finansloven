@@ -615,11 +615,12 @@ function init(expenses, year) {
     d3.select(self.frameElement).style("height", margin.top + margin.bottom + "px");
 }
 expenses = true;
+year = 2017;
 init(expenses);
 $(".title-group button.toggle").on("click", function() {
     expenses = !expenses;
     $(this).html("<h3>" + (expenses ? "Udgifter" : "Indtægter") + "</h3>")
-    reset(expenses);
+    reset(expenses, year);
 });
 function reset(expenses, year) {
     $("svg g, #infobox tr, #breadcrumbs div").remove();
@@ -634,12 +635,12 @@ $('.dropdown-toggle').click(function(){
 
         if ($(".dropdown-menu").find(e.target).length) {
             // selection made
-            // console.log("clicked inside", $(e.target).text(), $(e.target).text() !== $(_this).children("h3").text());
             $(".dropdown-menu li.active").removeClass("active");
             $(e.target).parent().addClass("active");
-            if ($(e.target).text() !== $(_this).children("h3").text()) {
-                $(_this).children("h3").text( $(e.target).text());
-                reset(expenses, $(e.target).text());
+            if ($(e.target).text() !== year) {
+                year = $(e.target).text();
+                $(_this).children("h3").text(year);
+                reset(expenses, year);
             }
 
         }

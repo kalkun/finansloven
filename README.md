@@ -6,7 +6,7 @@ Visualiseringen kan ses [her](http://52.59.14.148:10000/)
 
 **Data**
 
-Data er indsamlet fra [Finansministeriets Finanslovsdatabse](http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi).
+Data er indsamlet fra [Finansministeriets Finanslovsdatabase](http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi).
 Hvor nærmere beskrivelse af dataen også er at hente. Yderlige information samt hele finansloven i dets fulde beskrivelse kan findes i PDF format på 
 [Finansministeriets website](https://www.fm.dk/publikationer/2016/finanslov-for-2016).
 

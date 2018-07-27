@@ -537,7 +537,7 @@ function init(expenses, year) {
     // otherwise incomes
     function fetchData(mode, year) {
         if (!year) {
-            year = "2017";
+            year = "2018";
         }
         d3.tsv("data/finanslov_y" + year + ".tsv", function(err, data) {
             finansloven = data;
@@ -615,7 +615,7 @@ function init(expenses, year) {
     d3.select(self.frameElement).style("height", margin.top + margin.bottom + "px");
 }
 expenses = true;
-year = 2017;
+year = 2018;
 init(expenses);
 $(".title-group button.toggle").on("click", function() {
     expenses = !expenses;

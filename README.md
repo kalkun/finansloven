@@ -10,7 +10,7 @@ Data er indsamlet fra [Finansministeriets Finanslovsdatabase](http://www.oes-cs.
 Hvor nærmere beskrivelse af dataen også er at hente. Yderlige information samt hele finansloven i dets fulde beskrivelse kan findes i PDF format på 
 [Finansministeriets website](https://www.fm.dk/publikationer/2016/finanslov-for-2016).
 
-Finanslovene fra 2003-2017 er tilgængelig i _.tsv_ format fra mappen [`public/data/`](https://github.com/kalkun/finansloven/tree/master/public/data).
+Finanslovene fra 2003-2018 er tilgængelig i _.tsv_ format fra mappen [`public/data/`](https://github.com/kalkun/finansloven/tree/master/public/data).
 
 Den første række i hvert datasæt er en navne række for de forskellige kolonner. For en uddybet forklaring af kolonnerne se den oprindelige database på Finansministeriets hjemmeside. 
 
@@ -20,4 +20,4 @@ Alle tal i datasættene er i millioner i overensstemmelse med det oprindelige da
 
 Visualiseringen er lavet i [D3.js](https://d3js.org/) ud fra Mike Bostocks sunburst eksempler. Visualiseringen viser enten budgetterede udgifter eller indtægter på finansloven. Budgetterede indtægter er på finansloven angivet i negative tal - og filtreringen er foretaget ud fra dette kritiere. 
 
-Tallene som indgår i visualiseringen er udelukkende fra kolonne `F 2017` som ifølge finanslovsdatabasen angiver finansårets bevilling for 2017.
+Tallene som indgår i visualiseringen er udelukkende fra kolonne `F <år>` (e.g. `F 2017` som ifølge finanslovsdatabasen angiver finansårets bevilling for 2017).

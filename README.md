@@ -10,7 +10,7 @@ Data er indsamlet fra [Finansministeriets Finanslovsdatabase](http://www.oes-cs.
 Hvor nærmere beskrivelse af dataen også er at hente. Yderlige information samt hele finansloven i dets fulde beskrivelse kan findes i PDF format på 
 [Finansministeriets website](https://www.fm.dk/publikationer/2016/finanslov-for-2016).
 
-Finanslovene fra 2003-2017 er tilgængelig i _.tsv_ format fra mappen [`public/data/`](https://github.com/kalkun/finansloven/tree/master/public/data).
+Finanslovene fra 2003-2018 er tilgængelig i _.tsv_ format fra mappen [`public/data/`](https://github.com/kalkun/finansloven/tree/master/public/data).
 
 Den første række i hvert datasæt er en navne række for de forskellige kolonner. For en uddybet forklaring af kolonnerne se den oprindelige database på Finansministeriets hjemmeside. 
 

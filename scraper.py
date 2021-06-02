@@ -14,14 +14,15 @@ import argparse
 import requests
 from bs4 import BeautifulSoup
 
+
 class Scraper:
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        self.url = "http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi"
+        self.url = "https://www.oes-cs.dk/olapdatabase/finanslov/index.cgi"
         self.reqheaders = {
-            "Referer": "http://www.oes-cs.dk/olapdatabase/finanslov/index.cgi",
+            "Referer": "https://www.oes-cs.dk/olapdatabase/finanslov/index.cgi",
         }
         self.resetPostData()
         self.csvfile = getattr(self, "output", "finanslov.dsv")
@@ -31,19 +32,20 @@ class Scraper:
         self.Queue = []
         self.data = []
 
-        self.text = requests.post(self.url, data=self.postData, headers=self.reqheaders).text
+        self.text = requests.post(
+            self.url, data=self.postData, headers=self.reqheaders).text
         self.soup = BeautifulSoup(self.text, "lxml")
         hdr = self.soup.find_all("tr", class_="tabhdr")[1].find_all("th")
-        [ x.find("br").replaceWith(" ") for x in hdr ]
+        [x.find("br").replaceWith(" ") for x in hdr]
         self.header = [
-                "ID",
-                "Paragraf",
-                "Hovedområde",
-                "Aktivitetsområde",
-                "Hovedkonto",
-                "Underkonto",
-                "Standardkonto"
-            ] + [ x.text.strip() for x in hdr ]
+            "ID",
+            "Paragraf",
+            "Hovedområde",
+            "Aktivitetsområde",
+            "Hovedkonto",
+            "Underkonto",
+            "Standardkonto"
+        ] + [x.text.strip() for x in hdr]
 
         self.flushCSV(data=[self.header])
 
@@ -108,14 +110,16 @@ class Scraper:
                     list to on user command build a csv, json or other...
                 """
                 self.data.append([
-                    self.postData["UKONTO"] + row[0].text.strip().split(" ")[0], # the ID string reconstructed
+                    # the ID string reconstructed
+                    self.postData["UKONTO"] + \
+                    row[0].text.strip().split(" ")[0],
                     pgf,
                     homrade,
                     aomrade,
                     hkonto,
                     ukonto,
                     stdkonto
-                    ] + [ x.text.strip().replace(".", "").replace(",", ".") for x in row[1:7] ]
+                ] + [x.text.strip().replace(".", "").replace(",", ".") for x in row[1:7]]
                 )
 
                 self.printLatest(self.data[-1])
@@ -131,17 +135,17 @@ class Scraper:
 
     def resetPostData(self):
         self.postData = {
-            "funk"      : "STANDARDRAP",
-            "dwidth"    : "1973",
-            "qFINAR"    : getattr(self, "year", 2018),
-            "kFINAR"    : getattr(self, "year", 2018),
-            "rapniv"    : 1,
-            "subwindow" : "0",
-            "struktur"  : "PGF HOMRADE AOMRADE HKONTO UKONTO STDKTO"
+            "funk": "STANDARDRAP",
+            "dwidth": "1973",
+            "qFINAR": getattr(self, "year", 2018),
+            "kFINAR": getattr(self, "year", 2018),
+            "rapniv": 1,
+            "subwindow": "0",
+            "struktur": "PGF HOMRADE AOMRADE HKONTO UKONTO STDKTO"
         }
 
     def drillDown(self, selectedVal):
-        curvar = self.soup.find("input", {"name" : "curvar"})['value']
+        curvar = self.soup.find("input", {"name": "curvar"})['value']
         keyLength = selectedVal.index(' ')
         self.postData['curvar'] = selectedVal[0:keyLength]
         self.postData['up' + curvar] = selectedVal
@@ -190,39 +194,38 @@ class Scraper:
             raise ValueError("Ids are not a parseable length")
 
 
-
 ################################################################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description = "Scraper for Finansministeriets finanslovsdatabase"
+        description="Scraper for Finansministeriets finanslovsdatabase"
     )
     parser.add_argument(
         "-o",
         "--output",
-        metavar = "FILE",
-        help = "The output file to write the scraped information to (default: finanslov.dsv)",
-        default ="finanslov.dsv"
+        metavar="FILE",
+        help="The output file to write the scraped information to (default: finanslov.dsv)",
+        default="finanslov.dsv"
     )
     parser.add_argument(
         "-y",
         "--year",
-        metavar = "YYYY",
-        help = "The financial year to request from the database (default: 2017)",
-        default = "2017",
+        metavar="YYYY",
+        help="The financial year to request from the database (default: 2017)",
+        default="2017",
     )
     parser.add_argument(
         "-i",
         "--interval",
-        help = "The interval frequency that the scraped rows will be written to file (default: 50)",
-        type = int,
-        default = 50
+        help="The interval frequency that the scraped rows will be written to file (default: 50)",
+        type=int,
+        default=50
     )
     parser.add_argument(
         "-d",
         "--delimiter",
-        help = "The delimiter to use for the output dsv (default: ';')",
-        type = lambda x: x.encode().decode("unicode_escape"),
-        default = ";"
+        help="The delimiter to use for the output dsv (default: ';')",
+        type=lambda x: x.encode().decode("unicode_escape"),
+        default=";"
     )
     args = vars(parser.parse_args())
     sc = Scraper(**args)

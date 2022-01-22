@@ -3,3 +3,4 @@ log.txt
 .DS_Store
 pyproject.toml
 poetry.lock
+venv/

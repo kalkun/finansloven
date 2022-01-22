@@ -1,3 +1,7 @@
+// Initial display:
+var year = 2022;
+var expenses = true;
+
 function init(expenses, year) {
 
     var margin = {
@@ -146,8 +150,8 @@ function init(expenses, year) {
 
         function mouseover(d) {
             if (document.documentElement.__transition__) return;
-            
-            setTable(getMeta(d));           
+
+            setTable(getMeta(d));
 
             d3.selectAll("path").transition().style("opacity", 0.4);
             var descendants = getDescendants(d, true)
@@ -537,7 +541,7 @@ function init(expenses, year) {
     // otherwise incomes
     function fetchData(mode, year) {
         if (!year) {
-            year = "2021";
+            year = year;
         }
         d3.tsv("data/finanslov_y" + year + ".tsv", function(err, data) {
             finansloven = data;
@@ -614,9 +618,9 @@ function init(expenses, year) {
 
     d3.select(self.frameElement).style("height", margin.top + margin.bottom + "px");
 }
-expenses = true;
-year = 2021;
-init(expenses);
+
+init(expenses, year);
+
 $(".title-group button.toggle").on("click", function() {
     expenses = !expenses;
     $(this).html("<h3>" + (expenses ? "Udgifter" : "Indtægter") + "</h3>")
@@ -629,7 +633,7 @@ function reset(expenses, year) {
 
 $('.dropdown-toggle').click(function(){
   var _this = this;
-  var count = 0;    
+  var count = 0;
   var handler = function(e) {
     if (count > 0) {
 

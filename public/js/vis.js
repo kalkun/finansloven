@@ -1,6 +1,25 @@
 // Initial display:
-var year = 2022;
-var expenses = true;
+// var year = 2022;
+// var expenses = true;
+const params = new URLSearchParams(window.location.search)
+var year = params.get('year') !== null ? params.get('year') : 2022;
+var expenses = params.get('expenses') !== null ? params.get('expenses') === "true" : true;
+
+// initialize buttons/dropdowns based on query params
+(function () {
+  const el = $('.dropdown-menu li a:contains(' + year + ')')
+  if (el.length) {
+    el.parent().addClass('active');
+  }
+  $(".dropdown-toggle").children("h3").text(year);
+
+  $(".title-group button.toggle").html("<h3>" + (expenses ? "Udgifter" : "Indtægter") + "</h3>")
+
+})()
+
+function setQueryParams(searchParams) {
+    window.history.replaceState({}, '', location.pathname + "?" + searchParams.toString());
+}
 
 function init(expenses, year) {
 
@@ -146,7 +165,7 @@ function init(expenses, year) {
         var breadcrumbs = d3.select("#breadcrumbs")
             .selectAll("h3");
 
-        updateBreadcrumbs(root);
+        updateBreadcrumbs(root, true);
 
         function mouseover(d) {
             if (document.documentElement.__transition__) return;
@@ -253,7 +272,8 @@ function init(expenses, year) {
             return ancestors;
         }
 
-        function updateBreadcrumbs(p) {
+        function updateBreadcrumbs(p, initial) {
+            if (!initial) setToQuery(p);
             breadcrumbs = d3.select("#breadcrumbs")
                 .selectAll("div")
                 .data(getParents(p).reverse(), function(d) {
@@ -428,6 +448,58 @@ function init(expenses, year) {
                 }, 40);
             }
         })
+
+        const qDrillParams = [
+          "Paragraf", "Hovedområde", "Aktivitetsområde", "Hovedkonto", "Underkonto", "Standardkonto"
+        ]
+
+        function getFromQuery() {
+            const params = new URLSearchParams(window.location.search)
+            var node = root;
+
+            for (var i = 0; i < qDrillParams.length; i++) {
+              const q = qDrillParams[i];
+              const p = params.get(q)
+
+              if (!p) break;
+
+              const res = node._children.find(function(n) {
+                  return n.name == p;
+              });
+
+              node = !!res ? res : node;
+            }
+
+            if (node.depth == 0) {
+                zoomOut(node);
+            } else {
+                zoomIn(node);
+            }
+        }
+
+
+        function setToQuery(node) {
+          const searchParams = new URLSearchParams();
+          searchParams.set("year", year);
+          searchParams.set("expenses", expenses);
+
+          var _node = node;
+          var values = []
+          while (!!_node.parent) {
+              values.push(_node.name)
+              _node = _node.parent
+          }
+
+          values.reverse().forEach(function(v, i) {
+            searchParams.set(qDrillParams[i], v)
+          })
+
+          //window.history.replaceState({}, '', location.pathname + "?" + searchParams.toString());
+          setQueryParams(searchParams)
+
+        }
+
+        getFromQuery()
     }
 
     var currentFocus;
@@ -572,7 +644,7 @@ function init(expenses, year) {
         })
     }
 
-    var showingIncome = false;
+    var showingIncome = !expenses;
 
     (function() {
         fetchData(expenses, year);
@@ -583,7 +655,6 @@ function init(expenses, year) {
                 fetchData(showingIncome);
             })
     })()
-
 
     function key(d) {
         var k = [],
@@ -623,13 +694,19 @@ init(expenses, year);
 
 $(".title-group button.toggle").on("click", function() {
     expenses = !expenses;
+    const params = new URLSearchParams(window.location.search)
+    params.set("expenses", expenses);
+    setQueryParams(params)
+
     $(this).html("<h3>" + (expenses ? "Udgifter" : "Indtægter") + "</h3>")
     reset(expenses, year);
 });
+
 function reset(expenses, year) {
     $("svg g, #infobox tr, #breadcrumbs div").remove();
     init(expenses, year)
 }
+
 
 $('.dropdown-toggle').click(function(){
   var _this = this;
@@ -643,6 +720,9 @@ $('.dropdown-toggle').click(function(){
             $(e.target).parent().addClass("active");
             if ($(e.target).text() !== year) {
                 year = $(e.target).text();
+                const params = new URLSearchParams(window.location.search)
+                params.set("year", year);
+                setQueryParams(params)
                 $(_this).children("h3").text(year);
                 reset(expenses, year);
             }

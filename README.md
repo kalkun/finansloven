@@ -1,3 +1,6 @@
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+
+
 ### FINANSLOV
 
 Millioner, milliarder og millioner af millioner! Ved du hvor stort det offentlige budget, finansloven, er? Og har du nogensinde tænkt over hvordan vi egentlig bruger vores penge? Eller hvilken betydning det _egentligt_ har når et parti vil bevilge flere eller færre milliarder til det ene eller det andet? Hvordan hele kagen ser ud og hvordan den bliver skåret og fordelt? Eller om den offentlige debat i virkeligheden er afsporet i proportionerne af nyhedsdækning og samme emnes størrelse i det offentlige budget?

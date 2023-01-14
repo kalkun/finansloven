@@ -1,8 +1,6 @@
 // Initial display:
-// var year = 2022;
-// var expenses = true;
 const params = new URLSearchParams(window.location.search)
-var year = params.get('year') !== null ? params.get('year') : 2022;
+var year = params.get('year') !== null ? params.get('year') : 2023;
 var expenses = params.get('expenses') !== null ? params.get('expenses') === "true" : true;
 
 // initialize buttons/dropdowns based on query params

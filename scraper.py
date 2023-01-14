@@ -13,6 +13,7 @@ import csv
 import argparse
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 
 class Scraper:
@@ -50,10 +51,18 @@ class Scraper:
         self.flushCSV(data=[self.header])
 
         self.findDrillables()
+        self.pbar = tqdm(total=len(self.Queue))
+        paragraphs = list(map(lambda x: x[1], self.Queue))
+        count = 0
         while self.Queue:
             topic = self.Queue.pop()
             if topic[1] in self.history:
                 continue
+            if topic[1] in paragraphs:
+                paragraphs.pop()
+                self.pbar.update(1)
+            self.pbar.set_description(f"fetched {count} accounts")
+            count += 1
             self.history[topic[1]] = topic[2]
             self.parseIds(topic[1])
             self.drillDown(topic[0])
@@ -70,6 +79,7 @@ class Scraper:
         if len(self.data):
             self.flushCSV()
             self.data = []
+        self.pbar.close()
 
     def flushCSV(self, csvfile=None, data=None):
         csvfile = csvfile or self.csvfile
@@ -125,9 +135,9 @@ class Scraper:
                 self.printLatest(self.data[-1])
 
     def printLatest(self, line):
-        print("-" * 80)
+        self.pbar.write("-" * 80)
         for i in range(len(line)):
-            print(
+            self.pbar.write(
                 self.header[i] + " " * (20 - len(self.header[i])) + line[i]
                 if line[i] and line[i][0] != "-"
                 else self.header[i] + " " * (19 - len(self.header[i])) + line[i]
